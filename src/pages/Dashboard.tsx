@@ -30,40 +30,35 @@ const Dashboard = () => {
   const stats = [
     {
       title: "Today's Revenue",
-      value: "₹15,450",
-      change: "+12%",
+      value: "₹0",
+      change: "0%",
       icon: DollarSign,
       color: "text-green-600"
     },
     {
       title: "Vehicles Serviced",
-      value: "28",
-      change: "+8%",
+      value: "0",
+      change: "0%",
       icon: Car,
       color: "text-blue-600"
     },
     {
       title: "Active Customers",
-      value: "156",
-      change: "+5%",
+      value: "0",
+      change: "0%",
       icon: Users,
       color: "text-purple-600"
     },
     {
       title: "Pending Invoices",
-      value: "12",
-      change: "-3%",
+      value: "0",
+      change: "0%",
       icon: Receipt,
       color: "text-orange-600"
     }
   ];
 
-  const recentActivity = [
-    { id: 1, customer: "Rajesh Kumar", vehicle: "Honda City", service: "Full Service", amount: "₹2,500", status: "Completed" },
-    { id: 2, customer: "Priya Sharma", vehicle: "Yamaha R15", service: "Oil Change", amount: "₹800", status: "In Progress" },
-    { id: 3, customer: "Anand Patel", vehicle: "Maruti Swift", service: "Brake Service", amount: "₹1,200", status: "Pending" },
-    { id: 4, customer: "Meera Reddy", vehicle: "Royal Enfield", service: "Engine Repair", amount: "₹3,500", status: "Completed" }
-  ];
+  const recentActivity = [];
 
   const quickActions = [
     { title: "New Invoice", icon: Plus, action: () => navigate('/invoices'), color: "bg-blue-600" },
@@ -110,8 +105,8 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
                   <div className="flex items-center gap-1 text-sm">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-green-600">{stat.change}</span>
+                    <TrendingUp className="h-3 w-3 text-gray-400" />
+                    <span className="text-gray-400">{stat.change}</span>
                     <span className="text-gray-500">from yesterday</span>
                   </div>
                 </CardContent>
@@ -151,32 +146,10 @@ const Dashboard = () => {
               <CardDescription>Latest service updates and transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Car className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{activity.customer}</p>
-                        <p className="text-sm text-gray-600">{activity.vehicle} • {activity.service}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">{activity.amount}</p>
-                      <Badge 
-                        variant={
-                          activity.status === 'Completed' ? 'default' : 
-                          activity.status === 'In Progress' ? 'secondary' : 'outline'
-                        }
-                        className="text-xs"
-                      >
-                        {activity.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-gray-500">
+                <Car className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <p>No recent activity yet.</p>
+                <p className="text-sm">Start by creating your first invoice or adding a customer.</p>
               </div>
             </CardContent>
           </Card>

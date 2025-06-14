@@ -14,79 +14,43 @@ import {
   Car,
   Receipt,
   Calendar,
-  FileText
+  FileText,
+  BarChart3
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { CustomBarChart, CustomLineChart, CustomPieChart } from "@/components/Chart";
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState("30");
 
-  // Sample data for charts
-  const monthlyRevenue = [
-    { month: 'Jan', revenue: 45000, services: 120 },
-    { month: 'Feb', revenue: 52000, services: 140 },
-    { month: 'Mar', revenue: 48000, services: 135 },
-    { month: 'Apr', revenue: 61000, services: 165 },
-    { month: 'May', revenue: 58000, services: 155 },
-    { month: 'Jun', revenue: 67000, services: 180 }
-  ];
-
-  const serviceTypes = [
-    { name: 'Full Service', value: 35, color: '#3B82F6' },
-    { name: 'Oil Change', value: 25, color: '#10B981' },
-    { name: 'Brake Service', value: 20, color: '#F59E0B' },
-    { name: 'Engine Repair', value: 15, color: '#EF4444' },
-    { name: 'Others', value: 5, color: '#8B5CF6' }
-  ];
-
-  const dailyStats = [
-    { day: 'Mon', revenue: 8500, customers: 12 },
-    { day: 'Tue', revenue: 9200, customers: 15 },
-    { day: 'Wed', revenue: 7800, customers: 11 },
-    { day: 'Thu', revenue: 10200, customers: 16 },
-    { day: 'Fri', revenue: 11500, customers: 18 },
-    { day: 'Sat', revenue: 13200, customers: 22 },
-    { day: 'Sun', revenue: 6500, customers: 8 }
-  ];
-
-  const topServices = [
-    { name: 'Full Service', count: 45, revenue: 112500, growth: '+12%' },
-    { name: 'Oil Change', count: 38, revenue: 30400, growth: '+8%' },
-    { name: 'Brake Service', count: 22, revenue: 26400, growth: '+15%' },
-    { name: 'Engine Repair', count: 18, revenue: 63000, growth: '+5%' },
-    { name: 'Tire Service', count: 15, revenue: 7500, growth: '-2%' }
-  ];
-
   const keyMetrics = [
     {
       title: "Total Revenue",
-      value: "₹2,45,800",
-      change: "+18.2%",
+      value: "₹0",
+      change: "0%",
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
     {
       title: "Total Customers",
-      value: "156",
-      change: "+12.5%",
+      value: "0",
+      change: "0%",
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100"
     },
     {
       title: "Vehicles Serviced",
-      value: "289",
-      change: "+8.7%",
+      value: "0",
+      change: "0%",
       icon: Car,
       color: "text-purple-600",
       bgColor: "bg-purple-100"
     },
     {
       title: "Total Invoices",
-      value: "234",
-      change: "+15.3%",
+      value: "0",
+      change: "0%",
       icon: Receipt,
       color: "text-orange-600",
       bgColor: "bg-orange-100"
@@ -140,14 +104,8 @@ const Reports = () => {
                       <p className="text-sm font-medium text-gray-600">{metric.title}</p>
                       <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
                       <div className="flex items-center gap-1 mt-1">
-                        {metric.change.startsWith('+') ? (
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-500" />
-                        )}
-                        <span className={`text-sm ${metric.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                          {metric.change}
-                        </span>
+                        <TrendingUp className="h-3 w-3 text-gray-400" />
+                        <span className="text-sm text-gray-400">{metric.change}</span>
                         <span className="text-sm text-gray-500">vs last period</span>
                       </div>
                     </div>
@@ -170,149 +128,46 @@ const Reports = () => {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Monthly Revenue Chart */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Monthly Revenue Trend</CardTitle>
-                    <CardDescription>Revenue over the last 6 months</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <CustomLineChart 
-                      data={monthlyRevenue}
-                      dataKey="revenue"
-                      xAxisKey="month"
-                      color="#3B82F6"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Service Distribution */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Service Distribution</CardTitle>
-                    <CardDescription>Breakdown of service types this month</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <CustomPieChart 
-                      data={serviceTypes}
-                      dataKey="value"
-                      nameKey="name"
-                    />
-                    <div className="grid grid-cols-2 gap-2 mt-4">
-                      {serviceTypes.map((service, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: service.color }}
-                          />
-                          <span className="text-sm text-gray-600">{service.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Daily Performance */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Weekly Performance</CardTitle>
-                  <CardDescription>Daily revenue for this week</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CustomBarChart 
-                    data={dailyStats}
-                    dataKey="revenue"
-                    xAxisKey="day"
-                    color="#3B82F6"
-                  />
+                <CardContent className="pt-6">
+                  <div className="text-center py-12 text-gray-500">
+                    <BarChart3 className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No data available</h3>
+                    <p className="mb-4">Start creating invoices and serving customers to see your business analytics here.</p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Revenue Tab */}
             <TabsContent value="revenue" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Revenue Analysis</CardTitle>
-                      <CardDescription>Detailed revenue breakdown and trends</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <CustomBarChart 
-                        data={monthlyRevenue}
-                        dataKey="revenue"
-                        xAxisKey="month"
-                        color="#10B981"
-                        height={400}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Revenue Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="text-center border-b pb-4">
-                        <p className="text-3xl font-bold text-green-600">₹67,000</p>
-                        <p className="text-sm text-gray-600">This Month</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Average Daily</span>
-                          <span className="font-semibold">₹2,167</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Best Day</span>
-                          <span className="font-semibold">₹13,200</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Growth Rate</span>
-                          <span className="font-semibold text-green-600">+18.2%</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue Analysis</CardTitle>
+                  <CardDescription>Detailed revenue breakdown and trends</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-gray-500">
+                    <DollarSign className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No revenue data</h3>
+                    <p>Revenue reports will appear here once you start billing customers.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Services Tab */}
             <TabsContent value="services" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Performing Services</CardTitle>
+                  <CardTitle>Service Performance</CardTitle>
                   <CardDescription>Most popular services and their performance metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {topServices.map((service, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{service.name}</p>
-                            <p className="text-sm text-gray-600">{service.count} services completed</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">₹{service.revenue.toLocaleString()}</p>
-                          <Badge 
-                            variant={service.growth.startsWith('+') ? 'default' : 'destructive'}
-                            className="text-xs"
-                          >
-                            {service.growth}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-12 text-gray-500">
+                    <Car className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No service data</h3>
+                    <p>Service performance analytics will show here once you start providing services.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -324,27 +179,27 @@ const Reports = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">156</p>
+                      <p className="text-2xl font-bold text-blue-600">0</p>
                       <p className="text-sm text-gray-600">Total Customers</p>
-                      <p className="text-xs text-green-600 mt-1">+12 new this month</p>
+                      <p className="text-xs text-gray-400 mt-1">No new customers yet</p>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">89%</p>
+                      <p className="text-2xl font-bold text-green-600">0%</p>
                       <p className="text-sm text-gray-600">Retention Rate</p>
-                      <p className="text-xs text-green-600 mt-1">+5% improvement</p>
+                      <p className="text-xs text-gray-400 mt-1">No data available</p>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">₹1,575</p>
+                      <p className="text-2xl font-bold text-purple-600">₹0</p>
                       <p className="text-sm text-gray-600">Avg. Customer Value</p>
-                      <p className="text-xs text-green-600 mt-1">+8% increase</p>
+                      <p className="text-xs text-gray-400 mt-1">No data available</p>
                     </div>
                   </CardContent>
                 </Card>

@@ -41,119 +41,8 @@ const Services = () => {
     category: ""
   });
 
-  const services = [
-    {
-      id: 1,
-      name: "Full Service",
-      description: "Complete vehicle maintenance including oil change, filter replacement, and inspection",
-      price: 2500,
-      duration: "2-3 hours",
-      category: "Maintenance",
-      popularity: "High"
-    },
-    {
-      id: 2,
-      name: "Oil Change",
-      description: "Engine oil and filter replacement with quality check",
-      price: 800,
-      duration: "30 minutes",
-      category: "Maintenance",
-      popularity: "High"
-    },
-    {
-      id: 3,
-      name: "Brake Service",
-      description: "Brake pad inspection, replacement, and brake fluid check",
-      price: 1200,
-      duration: "1-2 hours",
-      category: "Safety",
-      popularity: "Medium"
-    },
-    {
-      id: 4,
-      name: "Engine Repair",
-      description: "Comprehensive engine diagnosis and repair services",
-      price: 3500,
-      duration: "4-6 hours",
-      category: "Repair",
-      popularity: "Medium"
-    },
-    {
-      id: 5,
-      name: "Tire Rotation",
-      description: "Tire rotation and alignment for even wear",
-      price: 500,
-      duration: "45 minutes",
-      category: "Maintenance",
-      popularity: "Medium"
-    },
-    {
-      id: 6,
-      name: "Battery Check",
-      description: "Battery health check and terminal cleaning",
-      price: 300,
-      duration: "20 minutes",
-      category: "Electrical",
-      popularity: "Low"
-    }
-  ];
-
-  const parts = [
-    {
-      id: 1,
-      name: "Engine Oil (5W-30)",
-      description: "High-quality synthetic engine oil",
-      price: 450,
-      stock: 25,
-      category: "Fluids",
-      supplier: "Castrol"
-    },
-    {
-      id: 2,
-      name: "Brake Pads",
-      description: "Premium ceramic brake pads",
-      price: 800,
-      stock: 15,
-      category: "Brake System",
-      supplier: "Bosch"
-    },
-    {
-      id: 3,
-      name: "Air Filter",
-      description: "High-efficiency air filter",
-      price: 350,
-      stock: 30,
-      category: "Filters",
-      supplier: "K&N"
-    },
-    {
-      id: 4,
-      name: "Spark Plugs",
-      description: "Platinum tip spark plugs (set of 4)",
-      price: 200,
-      stock: 40,
-      category: "Ignition",
-      supplier: "NGK"
-    },
-    {
-      id: 5,
-      name: "Chain & Sprocket Kit",
-      description: "Heavy-duty chain and sprocket set for motorcycles",
-      price: 1200,
-      stock: 8,
-      category: "Drive Train",
-      supplier: "DID"
-    },
-    {
-      id: 6,
-      name: "Clutch Plates",
-      description: "OEM quality clutch friction plates",
-      price: 900,
-      stock: 12,
-      category: "Transmission",
-      supplier: "Exedy"
-    }
-  ];
+  const services = [];
+  const parts = [];
 
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -197,25 +86,6 @@ const Services = () => {
       stock: "",
       category: ""
     });
-  };
-
-  const getPopularityColor = (popularity) => {
-    switch (popularity) {
-      case 'High':
-        return 'bg-green-100 text-green-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Low':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStockColor = (stock) => {
-    if (stock > 20) return 'bg-green-100 text-green-800';
-    if (stock > 10) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
   };
 
   return (
@@ -332,53 +202,20 @@ const Services = () => {
                   </Dialog>
                 </div>
 
-                {/* Services Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredServices.map((service) => (
-                    <Card key={service.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                              <Wrench className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-lg">{service.name}</CardTitle>
-                              <Badge className={getPopularityColor(service.popularity)}>
-                                {service.popularity}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 mb-4">{service.description}</p>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Price:</span>
-                            <span className="font-semibold text-green-600">₹{service.price}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Duration:</span>
-                            <span>{service.duration}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Category:</span>
-                            <Badge variant="outline">{service.category}</Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {/* Empty State for Services */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12 text-gray-500">
+                      <Wrench className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No services yet</h3>
+                      <p className="mb-4">Create your first service to start building your catalog.</p>
+                      <Button onClick={() => setShowAddServiceForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Your First Service
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
@@ -464,53 +301,20 @@ const Services = () => {
                   </Dialog>
                 </div>
 
-                {/* Parts Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredParts.map((part) => (
-                    <Card key={part.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                              <Package className="h-5 w-5 text-green-600" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-lg">{part.name}</CardTitle>
-                              <Badge className={getStockColor(part.stock)}>
-                                {part.stock} in stock
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 mb-4">{part.description}</p>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Price:</span>
-                            <span className="font-semibold text-green-600">₹{part.price}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Category:</span>
-                            <Badge variant="outline">{part.category}</Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Supplier:</span>
-                            <span>{part.supplier}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {/* Empty State for Parts */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12 text-gray-500">
+                      <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No parts yet</h3>
+                      <p className="mb-4">Add your first spare part to start building your inventory.</p>
+                      <Button onClick={() => setShowAddPartForm(true)} className="bg-green-600 hover:bg-green-700">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Your First Part
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>

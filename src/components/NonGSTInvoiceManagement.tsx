@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -173,8 +174,11 @@ const NonGSTInvoiceManagement = () => {
     toast.info("Print functionality will be implemented with PDF generation");
   };
 
-  const handleEmailInvoice = (invoice: Invoice) => {
-    toast.info("Email functionality will be implemented");
+  const handleMarkPaid = (invoiceId: string) => {
+    setInvoices(invoices.map(inv => 
+      inv.id === invoiceId ? { ...inv, status: 'paid' } : inv
+    ));
+    toast.success("Invoice marked as paid!");
   };
 
   const invoiceStats = {
@@ -376,9 +380,6 @@ const NonGSTInvoiceManagement = () => {
                       <Button size="sm" variant="ghost" onClick={() => handlePrintInvoice(invoice)}>
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleEmailInvoice(invoice)}>
-                        <Mail className="h-4 w-4" />
-                      </Button>
                       <Button 
                         size="sm" 
                         variant="ghost" 
@@ -423,11 +424,11 @@ const NonGSTInvoiceManagement = () => {
               <MobileInvoiceCard
                 key={invoice.id}
                 invoice={invoice}
-                customerName={customerName}
-                vehicleInfo={vehicleInfo}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onPrint={handlePrint}
+                customerName={getCustomerName(invoice.customerId)}
+                vehicleInfo={getVehicleInfo(invoice.vehicleId)}
+                onEdit={handleEditInvoice}
+                onDelete={handleDeleteInvoice}
+                onPrint={handlePrintInvoice}
                 onMarkPaid={handleMarkPaid}
               />
             ))}

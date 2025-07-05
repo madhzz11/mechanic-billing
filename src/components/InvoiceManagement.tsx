@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,20 +14,42 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, ArrowLeft, ArrowRight, Plus, Printer, Mail } from "lucide-react";
+import { CalendarIcon, ArrowLeft, ArrowRight, Plus, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Invoice } from "@/types/billing";
 import MobileInvoiceCard from "./MobileInvoiceCard";
 
 const ITEMS_PER_PAGE = 10;
 
+interface DatabaseInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_type: string;
+  customer_id: string;
+  vehicle_id: string;
+  subtotal: number;
+  discount_amount: number;
+  discount_percentage: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  total_gst_amount: number;
+  labor_charges: number;
+  extra_charges: any;
+  total: number;
+  status: 'draft' | 'sent' | 'paid' | 'pending' | 'overdue' | 'cancelled';
+  created_at: string;
+  due_date: string;
+  paid_at?: string;
+  notes?: string;
+  kilometers?: number;
+}
+
 const InvoiceManagement = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<DatabaseInvoice[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +58,7 @@ const InvoiceManagement = () => {
   const [isError, setIsError] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<Invoice['status']>('pending');
+  const [selectedStatus, setSelectedStatus] = useState<string>('pending');
   const [isMobileView, setIsMobileView] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -133,7 +156,7 @@ const InvoiceManagement = () => {
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (status: Invoice['status']) => {
+  const handleStatusChange = (status: string) => {
     setSelectedStatus(status);
     setCurrentPage(1);
   };
@@ -182,16 +205,12 @@ const InvoiceManagement = () => {
     }
   };
 
-  const handleEdit = (invoice: Invoice) => {
+  const handleEdit = (invoice: DatabaseInvoice) => {
     console.log("Edit invoice:", invoice);
   };
 
-  const handlePrint = (invoice: Invoice) => {
+  const handlePrint = (invoice: DatabaseInvoice) => {
     console.log("Print invoice:", invoice);
-  };
-
-  const handleEmail = (invoice: Invoice) => {
-    console.log("Email invoice:", invoice);
   };
 
   const handleMarkPaid = async (invoiceId: string) => {
@@ -281,17 +300,6 @@ const InvoiceManagement = () => {
                       selected={dateRange}
                       onSelect={handleDateChange}
                       numberOfMonths={2}
-                      pagedNavigation
-                      className="border-0"
-                      components={{
-                        DropdownIcon: () => null,
-                        NextIcon: ({ className, ...props }) => (
-                          <ArrowRight className={cn("h-4 w-4 text-muted-foreground")} />
-                        ),
-                        PrevIcon: ({ className, ...props }) => (
-                          <ArrowLeft className={cn("h-4 w-4 text-muted-foreground")} />
-                        ),
-                      }}
                     />
                   </PopoverContent>
                 </Popover>

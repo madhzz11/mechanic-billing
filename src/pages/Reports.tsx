@@ -2,30 +2,34 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Download, 
-  TrendingUp, 
-  TrendingDown,
+  TrendingUp,
   DollarSign,
   Users,
   Car,
   Receipt,
   Calendar,
-  FileText,
   BarChart3
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import LogoutButton from "@/components/LogoutButton";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const Reports = () => {
+  const { customers, services, parts, invoices, loading } = useSupabaseData();
   const [dateRange, setDateRange] = useState("30");
+
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.total), 0);
+  const paidInvoices = invoices.filter(invoice => invoice.status === 'paid');
+  const paidRevenue = paidInvoices.reduce((sum, invoice) => sum + Number(invoice.total), 0);
 
   const keyMetrics = [
     {
       title: "Total Revenue",
-      value: "₹0",
+      value: `₹${totalRevenue.toLocaleString('en-IN')}`,
       change: "0%",
       icon: DollarSign,
       color: "text-green-600",
@@ -33,7 +37,7 @@ const Reports = () => {
     },
     {
       title: "Total Customers",
-      value: "0",
+      value: customers.length.toString(),
       change: "0%",
       icon: Users,
       color: "text-blue-600",
@@ -41,7 +45,7 @@ const Reports = () => {
     },
     {
       title: "Vehicles Serviced",
-      value: "0",
+      value: invoices.length.toString(),
       change: "0%",
       icon: Car,
       color: "text-purple-600",
@@ -49,7 +53,7 @@ const Reports = () => {
     },
     {
       title: "Total Invoices",
-      value: "0",
+      value: invoices.length.toString(),
       change: "0%",
       icon: Receipt,
       color: "text-orange-600",
@@ -60,6 +64,14 @@ const Reports = () => {
   const exportReport = (type: string) => {
     console.log(`Exporting ${type} report...`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -73,6 +85,7 @@ const Reports = () => {
               <p className="text-gray-600">Track your business performance and insights</p>
             </div>
             <div className="flex gap-3">
+              <LogoutButton />
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-48">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -129,12 +142,33 @@ const Reports = () => {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
               <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center py-12 text-gray-500">
-                    <BarChart3 className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No data available</h3>
-                    <p className="mb-4">Start creating invoices and serving customers to see your business analytics here.</p>
-                  </div>
+                <CardHeader>
+                  <CardTitle>Business Overview</CardTitle>
+                  <CardDescription>Summary of your business performance</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {invoices.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <p className="text-2xl font-bold text-blue-600">{invoices.length}</p>
+                        <p className="text-sm text-gray-600">Total Invoices</p>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">₹{paidRevenue.toLocaleString('en-IN')}</p>
+                        <p className="text-sm text-gray-600">Paid Amount</p>
+                      </div>
+                      <div className="text-center p-4 bg-orange-50 rounded-lg">
+                        <p className="text-2xl font-bold text-orange-600">{services.length + parts.length}</p>
+                        <p className="text-sm text-gray-600">Total Items</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <BarChart3 className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No data available</h3>
+                      <p className="mb-4">Start creating invoices and serving customers to see your business analytics here.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -147,11 +181,28 @@ const Reports = () => {
                   <CardDescription>Detailed revenue breakdown and trends</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12 text-gray-500">
-                    <DollarSign className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No revenue data</h3>
-                    <p>Revenue reports will appear here once you start billing customers.</p>
-                  </div>
+                  {invoices.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-medium text-gray-900 mb-2">Total Revenue</h4>
+                          <p className="text-2xl font-bold text-green-600">₹{totalRevenue.toLocaleString('en-IN')}</p>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-medium text-gray-900 mb-2">Average Invoice Value</h4>
+                          <p className="text-2xl font-bold text-blue-600">
+                            ₹{invoices.length > 0 ? Math.round(totalRevenue / invoices.length).toLocaleString('en-IN') : 0}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <DollarSign className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No revenue data</h3>
+                      <p>Revenue reports will appear here once you start billing customers.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -164,11 +215,24 @@ const Reports = () => {
                   <CardDescription>Most popular services and their performance metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12 text-gray-500">
-                    <Car className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No service data</h3>
-                    <p>Service performance analytics will show here once you start providing services.</p>
-                  </div>
+                  {services.length > 0 || parts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-2">Total Services</h4>
+                        <p className="text-2xl font-bold text-blue-600">{services.length}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-2">Total Parts</h4>
+                        <p className="text-2xl font-bold text-green-600">{parts.length}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <Car className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No service data</h3>
+                      <p>Service performance analytics will show here once you start providing services.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -179,27 +243,31 @@ const Reports = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">0</p>
+                      <p className="text-2xl font-bold text-blue-600">{customers.length}</p>
                       <p className="text-sm text-gray-600">Total Customers</p>
-                      <p className="text-xs text-gray-400 mt-1">No new customers yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Registered customers</p>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">0%</p>
-                      <p className="text-sm text-gray-600">Retention Rate</p>
-                      <p className="text-xs text-gray-400 mt-1">No data available</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {customers.filter(c => c.gst_number).length}
+                      </p>
+                      <p className="text-sm text-gray-600">GST Customers</p>
+                      <p className="text-xs text-gray-400 mt-1">With GST numbers</p>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">₹0</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        ₹{customers.length > 0 ? Math.round(totalRevenue / customers.length).toLocaleString('en-IN') : 0}
+                      </p>
                       <p className="text-sm text-gray-600">Avg. Customer Value</p>
-                      <p className="text-xs text-gray-400 mt-1">No data available</p>
+                      <p className="text-xs text-gray-400 mt-1">Per customer</p>
                     </div>
                   </CardContent>
                 </Card>

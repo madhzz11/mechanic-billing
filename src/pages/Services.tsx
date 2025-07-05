@@ -5,32 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Plus, 
   Search, 
-  Edit,
-  Trash2,
   Wrench,
-  Settings,
   Package
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import LogoutButton from "@/components/LogoutButton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const Services = () => {
+  const { services, parts, fetchServices, fetchParts, loading } = useSupabaseData();
   const [showAddServiceForm, setShowAddServiceForm] = useState(false);
   const [showAddPartForm, setShowAddPartForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
   const [newService, setNewService] = useState({
     name: "",
     description: "",
     price: "",
     duration: "",
-    category: ""
+    category: "",
+    sacCode: "",
+    gstRate: "18"
   });
 
   const [newPart, setNewPart] = useState({
@@ -38,55 +42,117 @@ const Services = () => {
     description: "",
     price: "",
     stock: "",
-    category: ""
+    category: "",
+    hsnCode: "",
+    gstRate: "18",
+    supplier: "",
+    partNumber: ""
   });
-
-  const services = [];
-  const parts = [];
 
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredParts = parts.filter(part =>
     part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (part.category && part.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAddService = () => {
-    if (!newService.name || !newService.price) {
-      toast.error("Please fill in required fields");
+  const handleAddService = async () => {
+    if (!newService.name || !newService.price || !newService.sacCode) {
+      toast.error("Please fill in required fields (Name, Price, SAC Code)");
       return;
     }
     
-    toast.success("Service added successfully!");
-    setShowAddServiceForm(false);
-    setNewService({
-      name: "",
-      description: "",
-      price: "",
-      duration: "",
-      category: ""
-    });
+    setSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('services')
+        .insert({
+          name: newService.name,
+          description: newService.description || null,
+          base_price: parseFloat(newService.price),
+          estimated_time: newService.duration ? parseInt(newService.duration) : 0,
+          category: newService.category || null,
+          sac_code: newService.sacCode,
+          gst_rate: parseInt(newService.gstRate)
+        });
+
+      if (error) throw error;
+
+      toast.success("Service added successfully!");
+      setShowAddServiceForm(false);
+      setNewService({
+        name: "",
+        description: "",
+        price: "",
+        duration: "",
+        category: "",
+        sacCode: "",
+        gstRate: "18"
+      });
+      fetchServices();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add service");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleAddPart = () => {
-    if (!newPart.name || !newPart.price) {
-      toast.error("Please fill in required fields");
+  const handleAddPart = async () => {
+    if (!newPart.name || !newPart.price || !newPart.hsnCode) {
+      toast.error("Please fill in required fields (Name, Price, HSN Code)");
       return;
     }
     
-    toast.success("Part added successfully!");
-    setShowAddPartForm(false);
-    setNewPart({
-      name: "",
-      description: "",
-      price: "",
-      stock: "",
-      category: ""
-    });
+    setSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('parts')
+        .insert({
+          name: newPart.name,
+          category: newPart.category || null,
+          hsn_code: newPart.hsnCode,
+          price: parseFloat(newPart.price),
+          gst_rate: parseInt(newPart.gstRate),
+          stock_quantity: newPart.stock ? parseInt(newPart.stock) : 0,
+          supplier: newPart.supplier || null,
+          part_number: newPart.partNumber || null
+        });
+
+      if (error) throw error;
+
+      toast.success("Part added successfully!");
+      setShowAddPartForm(false);
+      setNewPart({
+        name: "",
+        description: "",
+        price: "",
+        stock: "",
+        category: "",
+        hsnCode: "",
+        gstRate: "18",
+        supplier: "",
+        partNumber: ""
+      });
+      fetchParts();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add part");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -96,6 +162,7 @@ const Services = () => {
         <header className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Services & Parts</h1>
+            <LogoutButton />
           </div>
         </header>
 
@@ -124,7 +191,6 @@ const Services = () => {
             {/* Services Tab */}
             <TabsContent value="services">
               <div className="space-y-6">
-                {/* Services Header */}
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-semibold">Services Catalog</h2>
@@ -137,7 +203,7 @@ const Services = () => {
                         Add Service
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Add New Service</DialogTitle>
                         <DialogDescription>
@@ -152,6 +218,15 @@ const Services = () => {
                             value={newService.name}
                             onChange={(e) => setNewService({...newService, name: e.target.value})}
                             placeholder="Enter service name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="sacCode">SAC Code *</Label>
+                          <Input 
+                            id="sacCode"
+                            value={newService.sacCode}
+                            onChange={(e) => setNewService({...newService, sacCode: e.target.value})}
+                            placeholder="Enter SAC code"
                           />
                         </div>
                         <div>
@@ -176,44 +251,85 @@ const Services = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="serviceDuration">Duration</Label>
+                            <Label htmlFor="gstRate">GST Rate *</Label>
+                            <Select value={newService.gstRate} onValueChange={(value) => setNewService({...newService, gstRate: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="9">9%</SelectItem>
+                                <SelectItem value="18">18%</SelectItem>
+                                <SelectItem value="28">28%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="serviceDuration">Duration (minutes)</Label>
                             <Input 
                               id="serviceDuration"
+                              type="number"
                               value={newService.duration}
                               onChange={(e) => setNewService({...newService, duration: e.target.value})}
-                              placeholder="e.g., 2 hours"
+                              placeholder="120"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="serviceCategory">Category</Label>
+                            <Input 
+                              id="serviceCategory"
+                              value={newService.category}
+                              onChange={(e) => setNewService({...newService, category: e.target.value})}
+                              placeholder="e.g., Maintenance"
                             />
                           </div>
                         </div>
-                        <div>
-                          <Label htmlFor="serviceCategory">Category</Label>
-                          <Input 
-                            id="serviceCategory"
-                            value={newService.category}
-                            onChange={(e) => setNewService({...newService, category: e.target.value})}
-                            placeholder="e.g., Maintenance, Repair"
-                          />
-                        </div>
-                        <Button onClick={handleAddService} className="w-full bg-blue-600 hover:bg-blue-700">
-                          Add Service
+                        <Button 
+                          onClick={handleAddService} 
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          disabled={submitting}
+                        >
+                          {submitting ? "Adding..." : "Add Service"}
                         </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
                 </div>
 
-                {/* Empty State for Services */}
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="text-center py-12 text-gray-500">
-                      <Wrench className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No services yet</h3>
-                      <p className="mb-4">Create your first service to start building your catalog.</p>
-                      <Button onClick={() => setShowAddServiceForm(true)} className="bg-blue-600 hover:bg-blue-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Your First Service
-                      </Button>
-                    </div>
+                    {filteredServices.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredServices.map((service) => (
+                          <div key={service.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <h3 className="font-medium text-gray-900">{service.name}</h3>
+                            <p className="text-sm text-gray-600 mt-1">SAC: {service.sac_code}</p>
+                            <div className="flex justify-between items-center mt-3">
+                              <span className="text-lg font-semibold text-blue-600">
+                                ₹{Number(service.base_price).toLocaleString('en-IN')}
+                              </span>
+                              <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+                                {service.gst_rate}% GST
+                              </span>
+                            </div>
+                            {service.category && (
+                              <p className="text-xs text-gray-500 mt-2">{service.category}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <Wrench className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No services yet</h3>
+                        <p className="mb-4">Create your first service to start building your catalog.</p>
+                        <Button onClick={() => setShowAddServiceForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Your First Service
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -222,7 +338,6 @@ const Services = () => {
             {/* Parts Tab */}
             <TabsContent value="parts">
               <div className="space-y-6">
-                {/* Parts Header */}
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-semibold">Parts Inventory</h2>
@@ -235,7 +350,7 @@ const Services = () => {
                         Add Part
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Add New Part</DialogTitle>
                         <DialogDescription>
@@ -253,13 +368,12 @@ const Services = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="partDescription">Description</Label>
-                          <Textarea 
-                            id="partDescription"
-                            value={newPart.description}
-                            onChange={(e) => setNewPart({...newPart, description: e.target.value})}
-                            placeholder="Describe the part"
-                            rows={3}
+                          <Label htmlFor="hsnCode">HSN Code *</Label>
+                          <Input 
+                            id="hsnCode"
+                            value={newPart.hsnCode}
+                            onChange={(e) => setNewPart({...newPart, hsnCode: e.target.value})}
+                            placeholder="Enter HSN code"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -274,6 +388,21 @@ const Services = () => {
                             />
                           </div>
                           <div>
+                            <Label htmlFor="partGstRate">GST Rate *</Label>
+                            <Select value={newPart.gstRate} onValueChange={(value) => setNewPart({...newPart, gstRate: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="9">9%</SelectItem>
+                                <SelectItem value="18">18%</SelectItem>
+                                <SelectItem value="28">28%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
                             <Label htmlFor="partStock">Stock Quantity</Label>
                             <Input 
                               id="partStock"
@@ -283,36 +412,86 @@ const Services = () => {
                               placeholder="0"
                             />
                           </div>
+                          <div>
+                            <Label htmlFor="partCategory">Category</Label>
+                            <Input 
+                              id="partCategory"
+                              value={newPart.category}
+                              onChange={(e) => setNewPart({...newPart, category: e.target.value})}
+                              placeholder="e.g., Filters"
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="partCategory">Category</Label>
-                          <Input 
-                            id="partCategory"
-                            value={newPart.category}
-                            onChange={(e) => setNewPart({...newPart, category: e.target.value})}
-                            placeholder="e.g., Filters, Brake System"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="supplier">Supplier</Label>
+                            <Input 
+                              id="supplier"
+                              value={newPart.supplier}
+                              onChange={(e) => setNewPart({...newPart, supplier: e.target.value})}
+                              placeholder="Supplier name"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="partNumber">Part Number</Label>
+                            <Input 
+                              id="partNumber"
+                              value={newPart.partNumber}
+                              onChange={(e) => setNewPart({...newPart, partNumber: e.target.value})}
+                              placeholder="Part number"
+                            />
+                          </div>
                         </div>
-                        <Button onClick={handleAddPart} className="w-full bg-green-600 hover:bg-green-700">
-                          Add Part
+                        <Button 
+                          onClick={handleAddPart} 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          disabled={submitting}
+                        >
+                          {submitting ? "Adding..." : "Add Part"}
                         </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
                 </div>
 
-                {/* Empty State for Parts */}
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="text-center py-12 text-gray-500">
-                      <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No parts yet</h3>
-                      <p className="mb-4">Add your first spare part to start building your inventory.</p>
-                      <Button onClick={() => setShowAddPartForm(true)} className="bg-green-600 hover:bg-green-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Your First Part
-                      </Button>
-                    </div>
+                    {filteredParts.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredParts.map((part) => (
+                          <div key={part.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <h3 className="font-medium text-gray-900">{part.name}</h3>
+                            <p className="text-sm text-gray-600 mt-1">HSN: {part.hsn_code}</p>
+                            <div className="flex justify-between items-center mt-3">
+                              <span className="text-lg font-semibold text-green-600">
+                                ₹{Number(part.price).toLocaleString('en-IN')}
+                              </span>
+                              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {part.gst_rate}% GST
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className="text-sm text-gray-600">
+                                Stock: {part.stock_quantity || 0}
+                              </span>
+                              {part.category && (
+                                <span className="text-xs text-gray-500">{part.category}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No parts yet</h3>
+                        <p className="mb-4">Add your first spare part to start building your inventory.</p>
+                        <Button onClick={() => setShowAddPartForm(true)} className="bg-green-600 hover:bg-green-700">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Your First Part
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

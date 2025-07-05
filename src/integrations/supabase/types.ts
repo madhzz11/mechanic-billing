@@ -9,7 +9,363 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          gst_number: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          cgst_amount: number | null
+          created_at: string | null
+          discount_amount: number | null
+          gst_rate: number
+          id: string
+          invoice_id: string
+          item_id: string
+          item_type: string
+          name: string
+          quantity: number
+          sac_hsn_code: string
+          sgst_amount: number | null
+          total_amount: number
+          unit_price: number
+        }
+        Insert: {
+          cgst_amount?: number | null
+          created_at?: string | null
+          discount_amount?: number | null
+          gst_rate: number
+          id?: string
+          invoice_id: string
+          item_id: string
+          item_type: string
+          name: string
+          quantity?: number
+          sac_hsn_code: string
+          sgst_amount?: number | null
+          total_amount: number
+          unit_price: number
+        }
+        Update: {
+          cgst_amount?: number | null
+          created_at?: string | null
+          discount_amount?: number | null
+          gst_rate?: number
+          id?: string
+          invoice_id?: string
+          item_id?: string
+          item_type?: string
+          name?: string
+          quantity?: number
+          sac_hsn_code?: string
+          sgst_amount?: number | null
+          total_amount?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          cgst_amount: number | null
+          created_at: string | null
+          customer_id: string
+          discount_amount: number | null
+          discount_percentage: number | null
+          due_date: string | null
+          extra_charges: Json | null
+          id: string
+          invoice_number: string
+          invoice_type: string
+          kilometers: number | null
+          labor_charges: number | null
+          notes: string | null
+          paid_at: string | null
+          sgst_amount: number | null
+          status: Database["public"]["Enums"]["invoice_status"] | null
+          subtotal: number
+          total: number
+          total_gst_amount: number | null
+          vehicle_id: string
+        }
+        Insert: {
+          cgst_amount?: number | null
+          created_at?: string | null
+          customer_id: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          due_date?: string | null
+          extra_charges?: Json | null
+          id?: string
+          invoice_number: string
+          invoice_type: string
+          kilometers?: number | null
+          labor_charges?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          sgst_amount?: number | null
+          status?: Database["public"]["Enums"]["invoice_status"] | null
+          subtotal?: number
+          total?: number
+          total_gst_amount?: number | null
+          vehicle_id: string
+        }
+        Update: {
+          cgst_amount?: number | null
+          created_at?: string | null
+          customer_id?: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          due_date?: string | null
+          extra_charges?: Json | null
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          kilometers?: number | null
+          labor_charges?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          sgst_amount?: number | null
+          status?: Database["public"]["Enums"]["invoice_status"] | null
+          subtotal?: number
+          total?: number
+          total_gst_amount?: number | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          gst_rate: number
+          hsn_code: string
+          id: string
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string
+          part_number: string | null
+          price: number
+          stock_quantity: number | null
+          supplier: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          gst_rate: number
+          hsn_code: string
+          id?: string
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name: string
+          part_number?: string | null
+          price?: number
+          stock_quantity?: number | null
+          supplier?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          gst_rate?: number
+          hsn_code?: string
+          id?: string
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name?: string
+          part_number?: string | null
+          price?: number
+          stock_quantity?: number | null
+          supplier?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          paid_at: string | null
+          refund_amount: number | null
+          refund_reason: string | null
+          status: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          paid_at?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          paid_at?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          estimated_time: number | null
+          gst_rate: number
+          id: string
+          is_active: boolean | null
+          name: string
+          sac_code: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_time?: number | null
+          gst_rate: number
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sac_code: string
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_time?: number | null
+          gst_rate?: number
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sac_code?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          chassis_number: string | null
+          color: string | null
+          created_at: string | null
+          customer_id: string
+          engine_number: string | null
+          id: string
+          make: string
+          model: string
+          vehicle_number: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+          year: number | null
+        }
+        Insert: {
+          chassis_number?: string | null
+          color?: string | null
+          created_at?: string | null
+          customer_id: string
+          engine_number?: string | null
+          id?: string
+          make: string
+          model: string
+          vehicle_number: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+          year?: number | null
+        }
+        Update: {
+          chassis_number?: string | null
+          color?: string | null
+          created_at?: string | null
+          customer_id?: string
+          engine_number?: string | null
+          id?: string
+          make?: string
+          model?: string
+          vehicle_number?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +374,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "paid"
+        | "pending"
+        | "overdue"
+        | "cancelled"
+      payment_method: "cash" | "card" | "upi" | "netbanking" | "bank_transfer"
+      payment_status: "completed" | "pending" | "failed" | "refunded"
+      vehicle_type: "car" | "bike" | "scooter" | "truck" | "van"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +498,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      invoice_status: [
+        "draft",
+        "sent",
+        "paid",
+        "pending",
+        "overdue",
+        "cancelled",
+      ],
+      payment_method: ["cash", "card", "upi", "netbanking", "bank_transfer"],
+      payment_status: ["completed", "pending", "failed", "refunded"],
+      vehicle_type: ["car", "bike", "scooter", "truck", "van"],
+    },
   },
 } as const

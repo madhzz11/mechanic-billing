@@ -1,8 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { 
   Car, 
@@ -12,14 +11,16 @@ import {
   Plus, 
   TrendingUp, 
   Calendar,
-  Settings,
   DollarSign,
   Wrench
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import LogoutButton from "@/components/LogoutButton";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { customers, services, parts, invoices, loading } = useSupabaseData();
   const [currentDate] = useState(new Date().toLocaleDateString('en-IN', {
     weekday: 'long',
     year: 'numeric',
@@ -27,38 +28,43 @@ const Dashboard = () => {
     day: 'numeric'
   }));
 
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.total), 0);
+  const todayInvoices = invoices.filter(invoice => 
+    new Date(invoice.created_at!).toDateString() === new Date().toDateString()
+  );
+  const todayRevenue = todayInvoices.reduce((sum, invoice) => sum + Number(invoice.total), 0);
+  const pendingInvoices = invoices.filter(invoice => invoice.status === 'pending').length;
+
   const stats = [
     {
       title: "Today's Revenue",
-      value: "₹0",
+      value: `₹${todayRevenue.toLocaleString('en-IN')}`,
       change: "0%",
       icon: DollarSign,
       color: "text-green-600"
     },
     {
       title: "Vehicles Serviced",
-      value: "0",
+      value: invoices.length.toString(),
       change: "0%",
       icon: Car,
       color: "text-blue-600"
     },
     {
       title: "Active Customers",
-      value: "0",
+      value: customers.length.toString(),
       change: "0%",
       icon: Users,
       color: "text-purple-600"
     },
     {
       title: "Pending Invoices",
-      value: "0",
+      value: pendingInvoices.toString(),
       change: "0%",
       icon: Receipt,
       color: "text-orange-600"
     }
   ];
-
-  const recentActivity = [];
 
   const quickActions = [
     { title: "New Invoice", icon: Plus, action: () => navigate('/invoices'), color: "bg-blue-600" },
@@ -67,12 +73,19 @@ const Dashboard = () => {
     { title: "View Reports", icon: BarChart3, action: () => navigate('/reports'), color: "bg-orange-600" }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       
       <div className="flex-1 overflow-auto">
-        {/* Header */}
         <header className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -83,6 +96,7 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex gap-3">
+              <LogoutButton />
               <Button onClick={() => navigate('/invoices')} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
                 New Invoice
@@ -146,11 +160,30 @@ const Dashboard = () => {
               <CardDescription>Latest service updates and transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Car className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <p>No recent activity yet.</p>
-                <p className="text-sm">Start by creating your first invoice or adding a customer.</p>
-              </div>
+              {invoices.length > 0 ? (
+                <div className="space-y-4">
+                  {invoices.slice(0, 5).map((invoice) => (
+                    <div key={invoice.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">Invoice #{invoice.invoice_number}</p>
+                        <p className="text-sm text-gray-600">
+                          {new Date(invoice.created_at!).toLocaleDateString('en-IN')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">₹{Number(invoice.total).toLocaleString('en-IN')}</p>
+                        <p className="text-xs text-gray-600 capitalize">{invoice.status}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Car className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p>No recent activity yet.</p>
+                  <p className="text-sm">Start by creating your first invoice or adding a customer.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

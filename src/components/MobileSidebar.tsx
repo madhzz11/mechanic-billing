@@ -42,7 +42,7 @@ const MobileSidebar = () => {
             <img src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" alt="OM MURUGAN AUTO WORKS" className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 text-sm">OM MURUGAN</h2>
+            <h2 className="text-xs text-gray-600">OM MURUGAN</h2>
             <p className="text-xs text-gray-600">AUTO WORKS</p>
           </div>
         </div>

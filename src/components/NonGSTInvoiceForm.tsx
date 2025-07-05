@@ -206,7 +206,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
         labor_charges: laborCharges,
         extra_charges: extraCharges,
         total,
-        status: 'pending',
+        status: 'pending' as const,
         due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         notes,
         kilometers
@@ -214,7 +214,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
 
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([invoiceData])
+        .insert(invoiceData)
         .select()
         .single();
 
@@ -250,7 +250,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
             invoice_id: invoice.id,
             amount: paymentAmount,
             method: paymentMethod,
-            status: 'completed'
+            status: 'completed' as const
           }]);
 
         if (paymentError) throw paymentError;

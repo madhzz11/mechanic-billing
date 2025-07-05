@@ -423,12 +423,12 @@ const NonGSTInvoiceManagement = () => {
               <MobileInvoiceCard
                 key={invoice.id}
                 invoice={invoice}
-                customerName={getCustomerName(invoice.customerId)}
-                vehicleInfo={getVehicleInfo(invoice.vehicleId)}
-                onEdit={handleEditInvoice}
-                onDelete={handleDeleteInvoice}
-                onPrint={handlePrintInvoice}
-                onEmail={handleEmailInvoice}
+                customerName={customerName}
+                vehicleInfo={vehicleInfo}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onPrint={handlePrint}
+                onMarkPaid={handleMarkPaid}
               />
             ))}
           </div>

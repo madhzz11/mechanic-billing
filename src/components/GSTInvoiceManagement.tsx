@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import GSTInvoiceForm from "./GSTInvoiceForm";
 import MobileInvoiceCard from "./MobileInvoiceCard";
+import InvoiceViewModal from "./InvoiceViewModal";
 
 const GSTInvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -34,6 +34,8 @@ const GSTInvoiceManagement = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewInvoice, setViewInvoice] = useState<any>(null);
 
   const fetchData = async () => {
     try {
@@ -154,6 +156,11 @@ const GSTInvoiceManagement = () => {
     setSelectedInvoice(null);
   };
 
+  const handleViewInvoice = (invoice: any) => {
+    setViewInvoice(invoice);
+    setShowViewModal(true);
+  };
+
   const handleEditInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setShowCreateForm(true);
@@ -177,7 +184,12 @@ const GSTInvoiceManagement = () => {
   };
 
   const handlePrintInvoice = (invoice: any) => {
-    window.print();
+    setViewInvoice(invoice);
+    setShowViewModal(true);
+    // Print after a short delay to ensure modal is rendered
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   const invoiceStats = {
@@ -377,8 +389,11 @@ const GSTInvoiceManagement = () => {
                       </Badge>
                     </div>
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => handleEditInvoice(invoice)}>
+                      <Button size="sm" variant="ghost" onClick={() => handleViewInvoice(invoice)}>
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleEditInvoice(invoice)}>
+                        <Edit className="h-4 w-4" />
                       </Button>
                       {invoice.status === 'pending' && (
                         <Button 
@@ -439,7 +454,7 @@ const GSTInvoiceManagement = () => {
                 invoice={invoice}
                 customerName={getCustomerName(invoice.customer_id)}
                 vehicleInfo={getVehicleInfo(invoice.vehicle_id)}
-                onEdit={handleEditInvoice}
+                onEdit={handleViewInvoice}
                 onDelete={handleDeleteInvoice}
                 onPrint={handlePrintInvoice}
                 onMarkPaid={() => handleMarkAsPaid(invoice.id)}
@@ -448,6 +463,21 @@ const GSTInvoiceManagement = () => {
           </div>
         )}
       </div>
+
+      {/* View Invoice Modal */}
+      {viewInvoice && (
+        <InvoiceViewModal
+          isOpen={showViewModal}
+          onClose={() => {
+            setShowViewModal(false);
+            setViewInvoice(null);
+          }}
+          invoice={viewInvoice}
+          customer={customers.find(c => c.id === viewInvoice.customer_id)}
+          vehicle={vehicles.find(v => v.id === viewInvoice.vehicle_id)}
+          onPrint={() => window.print()}
+        />
+      )}
     </div>
   );
 };

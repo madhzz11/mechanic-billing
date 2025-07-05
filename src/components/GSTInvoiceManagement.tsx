@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Plus, 
   Search, 
-  Filter, 
   Printer, 
-  Mail, 
   Eye,
   Edit,
   Trash2,
@@ -18,61 +16,59 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
-import { Invoice, Customer, Vehicle } from "@/types/billing";
+import { supabase } from "@/integrations/supabase/client";
 import GSTInvoiceForm from "./GSTInvoiceForm";
 import MobileInvoiceCard from "./MobileInvoiceCard";
 
 const GSTInvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data - GST invoices only
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "3",
-      invoiceNumber: "GST-INV-20240101-001",
-      invoiceType: "gst",
-      customerId: "3",
-      vehicleId: "3",
-      items: [],
-      subtotal: 5000,
-      discount: 0,
-      taxRate: 18,
-      taxAmount: 900,
-      extraCharges: [],
-      total: 5900,
-      status: "paid",
-      createdAt: "2024-01-16T10:00:00Z",
-      dueDate: "2024-02-16T10:00:00Z",
-      paidAt: "2024-01-16T14:30:00Z",
-      laborCharges: 1000,
-      payments: [],
-      kilometers: 78000
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [invoicesData, customersData, vehiclesData] = await Promise.all([
+        supabase
+          .from('invoices')
+          .select('*')
+          .eq('invoice_type', 'gst')
+          .order('created_at', { ascending: false }),
+        supabase.from('customers').select('*'),
+        supabase.from('vehicles').select('*')
+      ]);
+
+      if (invoicesData.data) setInvoices(invoicesData.data);
+      if (customersData.data) setCustomers(customersData.data);
+      if (vehiclesData.data) setVehicles(vehiclesData.data);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      toast.error("Failed to fetch invoices");
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  const customers: Customer[] = [
-    { id: "3", name: "ABC Motors Pvt Ltd", phone: "9876543212", email: "abc@motors.com", gstNumber: "29ABCDE1234F1Z5", createdAt: "2024-01-01", totalSpent: 25000, loyaltyPoints: 250 },
-    { id: "4", name: "XYZ Transport Co", phone: "9876543213", email: "xyz@transport.com", gstNumber: "29XYZDE5678G2A6", createdAt: "2024-01-01", totalSpent: 15000, loyaltyPoints: 150 }
-  ];
-
-  const vehicles: Vehicle[] = [
-    { id: "3", customerId: "3", make: "Mahindra", model: "Bolero", vehicleNumber: "TN 03 EF 9012", vehicleType: "car", createdAt: "2024-01-01" },
-    { id: "4", customerId: "4", make: "Tata", model: "Ace", vehicleNumber: "TN 04 GH 3456", vehicleType: "car", createdAt: "2024-01-01" }
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const getCustomerName = (customerId: string) => {
     return customers.find(c => c.id === customerId)?.name || "Unknown Customer";
   };
 
   const getCustomerGST = (customerId: string) => {
-    return customers.find(c => c.id === customerId)?.gstNumber || "";
+    return customers.find(c => c.id === customerId)?.gst_number || "";
   };
 
   const getVehicleInfo = (vehicleId: string) => {
@@ -80,7 +76,7 @@ const GSTInvoiceManagement = () => {
     return vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle";
   };
 
-  const getStatusColor = (status: Invoice['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'default';
       case 'pending': return 'secondary';
@@ -91,7 +87,7 @@ const GSTInvoiceManagement = () => {
     }
   };
 
-  const getStatusIcon = (status: Invoice['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid': return <CheckCircle className="h-4 w-4" />;
       case 'pending': return <Clock className="h-4 w-4" />;
@@ -102,17 +98,37 @@ const GSTInvoiceManagement = () => {
     }
   };
 
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      toast.success("Invoice marked as paid!");
+      fetchData();
+    } catch (error) {
+      console.error('Error updating invoice:', error);
+      toast.error("Failed to update invoice status");
+    }
+  };
+
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getCustomerName(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getCustomerGST(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase());
+      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCustomerName(invoice.customer_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCustomerGST(invoice.customer_id).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
     let matchesDate = true;
     if (dateFilter !== "all") {
-      const invoiceDate = new Date(invoice.createdAt);
+      const invoiceDate = new Date(invoice.created_at);
       const now = new Date();
       switch (dateFilter) {
         case "today":
@@ -132,35 +148,36 @@ const GSTInvoiceManagement = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const handleSaveInvoice = (invoice: Invoice) => {
-    const invoiceWithType = { ...invoice, invoiceType: 'gst' as const };
-    if (selectedInvoice) {
-      setInvoices(invoices.map(inv => inv.id === invoice.id ? invoiceWithType : inv));
-      toast.success("GST Invoice updated successfully!");
-    } else {
-      setInvoices([invoiceWithType, ...invoices]);
-      toast.success("GST Invoice created successfully!");
-    }
+  const handleSaveInvoice = (invoice: any) => {
+    fetchData();
     setShowCreateForm(false);
     setSelectedInvoice(null);
   };
 
-  const handleEditInvoice = (invoice: Invoice) => {
+  const handleEditInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setShowCreateForm(true);
   };
 
-  const handleDeleteInvoice = (invoiceId: string) => {
-    setInvoices(invoices.filter(inv => inv.id !== invoiceId));
-    toast.success("Invoice deleted successfully!");
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      toast.success("Invoice deleted successfully!");
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      toast.error("Failed to delete invoice");
+    }
   };
 
-  const handlePrintInvoice = (invoice: Invoice) => {
-    toast.info("Print functionality will be implemented with PDF generation");
-  };
-
-  const handleEmailInvoice = (invoice: Invoice) => {
-    toast.info("Email functionality will be implemented");
+  const handlePrintInvoice = (invoice: any) => {
+    window.print();
   };
 
   const invoiceStats = {
@@ -168,7 +185,7 @@ const GSTInvoiceManagement = () => {
     paid: invoices.filter(inv => inv.status === 'paid').length,
     pending: invoices.filter(inv => inv.status === 'pending').length,
     overdue: invoices.filter(inv => inv.status === 'overdue').length,
-    totalRevenue: invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0)
+    totalRevenue: invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0)
   };
 
   if (showCreateForm) {
@@ -194,6 +211,14 @@ const GSTInvoiceManagement = () => {
           }}
           existingInvoice={selectedInvoice || undefined}
         />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -328,30 +353,25 @@ const GSTInvoiceManagement = () => {
                       {getStatusIcon(invoice.status)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{invoice.invoiceNumber}</p>
+                      <p className="font-medium text-gray-900">{invoice.invoice_number}</p>
                       <p className="text-sm text-gray-600">
-                        {getCustomerName(invoice.customerId)} • {getVehicleInfo(invoice.vehicleId)}
+                        {getCustomerName(invoice.customer_id)} • {getVehicleInfo(invoice.vehicle_id)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        GST: {getCustomerGST(invoice.customerId)}
+                        GST: {getCustomerGST(invoice.customer_id)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Created: {new Date(invoice.createdAt).toLocaleDateString()}
+                        Created: {new Date(invoice.created_at).toLocaleDateString()}
                         {invoice.kilometers && (
                           <span className="ml-2">• KM: {invoice.kilometers.toLocaleString()}</span>
-                        )}
-                        {invoice.status === 'overdue' && (
-                          <span className="text-red-500 ml-2">
-                            Due: {new Date(invoice.dueDate).toLocaleDateString()}
-                          </span>
                         )}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">₹{invoice.total.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">Tax: ₹{invoice.taxAmount.toFixed(2)}</p>
+                      <p className="font-semibold text-gray-900">₹{(invoice.total || 0).toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">Tax: ₹{(invoice.total_gst_amount || 0).toFixed(2)}</p>
                       <Badge variant={getStatusColor(invoice.status)} className="capitalize">
                         {invoice.status}
                       </Badge>
@@ -360,14 +380,18 @@ const GSTInvoiceManagement = () => {
                       <Button size="sm" variant="ghost" onClick={() => handleEditInvoice(invoice)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleEditInvoice(invoice)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {invoice.status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => handleMarkAsPaid(invoice.id)}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => handlePrintInvoice(invoice)}>
                         <Printer className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleEmailInvoice(invoice)}>
-                        <Mail className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="sm" 
@@ -413,12 +437,12 @@ const GSTInvoiceManagement = () => {
               <MobileInvoiceCard
                 key={invoice.id}
                 invoice={invoice}
-                customerName={getCustomerName(invoice.customerId)}
-                vehicleInfo={getVehicleInfo(invoice.vehicleId)}
+                customerName={getCustomerName(invoice.customer_id)}
+                vehicleInfo={getVehicleInfo(invoice.vehicle_id)}
                 onEdit={handleEditInvoice}
                 onDelete={handleDeleteInvoice}
                 onPrint={handlePrintInvoice}
-                onEmail={handleEmailInvoice}
+                onMarkPaid={() => handleMarkAsPaid(invoice.id)}
               />
             ))}
           </div>

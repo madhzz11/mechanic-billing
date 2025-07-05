@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,72 +16,92 @@ import {
   User,
   Receipt,
   CreditCard,
-  Printer,
-  Mail,
   Save,
-  Gauge
+  Gauge,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
-import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
-import InvoicePrintPreview from "./InvoicePrintPreview";
+import { supabase } from "@/integrations/supabase/client";
+import CustomerForm from "./CustomerForm";
 
 interface NonGSTInvoiceFormProps {
-  onSave: (invoice: Invoice) => void;
+  onSave: (invoice: any) => void;
   onCancel: () => void;
-  existingInvoice?: Invoice;
+  existingInvoice?: any;
 }
 
 const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceFormProps) => {
-  const [customers] = useState<Customer[]>([
-    { id: "1", name: "Rajesh Kumar", phone: "9876543210", email: "rajesh@email.com", createdAt: "2024-01-01", totalSpent: 15000, loyaltyPoints: 150 },
-    { id: "2", name: "Priya Sharma", phone: "9876543211", email: "priya@email.com", createdAt: "2024-01-01", totalSpent: 8000, loyaltyPoints: 80 }
-  ]);
-
-  const [vehicles] = useState<Vehicle[]>([
-    { id: "1", customerId: "1", make: "Honda", model: "City", vehicleNumber: "TN 01 AB 1234", vehicleType: "car", createdAt: "2024-01-01" },
-    { id: "2", customerId: "2", make: "Yamaha", model: "R15", vehicleNumber: "TN 02 CD 5678", vehicleType: "bike", createdAt: "2024-01-01" }
-  ]);
-
-  const [services] = useState<Service[]>([
-    { id: "1", name: "Full Service", category: "Maintenance", basePrice: 2500, estimatedTime: 120, isActive: true },
-    { id: "2", name: "Oil Change", category: "Maintenance", basePrice: 800, estimatedTime: 30, isActive: true },
-    { id: "3", name: "Brake Service", category: "Repair", basePrice: 1200, estimatedTime: 60, isActive: true },
-    { id: "4", name: "Engine Repair", category: "Repair", basePrice: 3500, estimatedTime: 240, isActive: true }
-  ]);
-
-  const [parts] = useState<Part[]>([
-    { id: "1", name: "Engine Oil", category: "Fluid", price: 450, stockQuantity: 50, minStockLevel: 10, isActive: true },
-    { id: "2", name: "Brake Pads", category: "Brake", price: 800, stockQuantity: 25, minStockLevel: 5, isActive: true },
-    { id: "3", name: "Air Filter", category: "Filter", price: 350, stockQuantity: 30, minStockLevel: 8, isActive: true }
-  ]);
-
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [parts, setParts] = useState<any[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [kilometers, setKilometers] = useState<number>(0);
-  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState(0); // Non-GST has 0% tax
   const [extraCharges, setExtraCharges] = useState<Array<{name: string; amount: number}>>([]);
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'upi' | 'netbanking'>('cash');
   const [paymentAmount, setPaymentAmount] = useState(0);
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
 
-  const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
+  const fetchData = async () => {
+    try {
+      const [customersData, servicesData, partsData] = await Promise.all([
+        supabase.from('customers').select('*').order('created_at', { ascending: false }),
+        supabase.from('services').select('*').eq('is_active', true).order('created_at', { ascending: false }),
+        supabase.from('parts').select('*').eq('is_active', true).order('created_at', { ascending: false })
+      ]);
+
+      if (customersData.data) setCustomers(customersData.data);
+      if (servicesData.data) setServices(servicesData.data);
+      if (partsData.data) setParts(partsData.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchVehicles = async (customerId: string) => {
+    try {
+      const { data } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('customer_id', customerId);
+      
+      if (data) setVehicles(data);
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCustomer) {
+      fetchVehicles(selectedCustomer.id);
+    }
+  }, [selectedCustomer]);
+
+  const customerVehicles = vehicles;
 
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
-      const newItem: InvoiceItem = {
+    if (service && !invoiceItems.find(item => item.item_id === serviceId && item.item_type === 'service')) {
+      const newItem = {
         id: Date.now().toString(),
-        type: 'service',
-        itemId: service.id,
+        item_type: 'service',
+        item_id: service.id,
         name: service.name,
+        sac_hsn_code: service.sac_code,
         quantity: 1,
-        unitPrice: service.basePrice,
-        discount: 0,
-        total: service.basePrice
+        unit_price: service.base_price,
+        discount_amount: 0,
+        gst_rate: service.gst_rate,
+        total_amount: service.base_price
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }
@@ -88,16 +109,18 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
 
   const addPart = (partId: string) => {
     const part = parts.find(p => p.id === partId);
-    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
-      const newItem: InvoiceItem = {
+    if (part && !invoiceItems.find(item => item.item_id === partId && item.item_type === 'part')) {
+      const newItem = {
         id: Date.now().toString(),
-        type: 'part',
-        itemId: part.id,
+        item_type: 'part',
+        item_id: part.id,
         name: part.name,
+        sac_hsn_code: part.hsn_code,
         quantity: 1,
-        unitPrice: part.price,
-        discount: 0,
-        total: part.price
+        unit_price: part.price,
+        discount_amount: 0,
+        gst_rate: part.gst_rate,
+        total_amount: part.price
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }
@@ -110,7 +133,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const updateItemQuantity = (itemId: string, quantity: number) => {
     setInvoiceItems(items => items.map(item => 
       item.id === itemId 
-        ? { ...item, quantity, total: (item.unitPrice - item.discount) * quantity }
+        ? { ...item, quantity, total_amount: (item.unit_price - item.discount_amount) * quantity }
         : item
     ));
   };
@@ -118,7 +141,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const updateItemDiscount = (itemId: string, discount: number) => {
     setInvoiceItems(items => items.map(item => 
       item.id === itemId 
-        ? { ...item, discount, total: (item.unitPrice - discount) * item.quantity }
+        ? { ...item, discount_amount: discount, total_amount: (item.unit_price - discount) * item.quantity }
         : item
     ));
   };
@@ -138,7 +161,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   };
 
   const calculateSubtotal = () => {
-    const itemsTotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+    const itemsTotal = invoiceItems.reduce((sum, item) => sum + item.total_amount, 0);
     const extraTotal = extraCharges.reduce((sum, charge) => sum + charge.amount, 0);
     return itemsTotal + laborCharges + extraTotal;
   };
@@ -146,9 +169,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discountAmount = (subtotal * discount) / 100;
-    const afterDiscount = subtotal - discountAmount;
-    const taxAmount = (afterDiscount * taxRate) / 100;
-    return afterDiscount + taxAmount;
+    return subtotal - discountAmount;
   };
 
   const generateInvoiceNumber = () => {
@@ -157,88 +178,115 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `INV-${year}${month}${day}-${random}`;
+    return `NON-GST-${year}${month}${day}-${random}`;
   };
 
-  const createInvoiceObject = (status: Invoice['status']) => {
-    const total = calculateTotal();
-    const payment: Payment | undefined = paymentAmount > 0 ? {
-      id: Date.now().toString(),
-      invoiceId: "",
-      amount: paymentAmount,
-      method: paymentMethod,
-      status: 'completed',
-      paidAt: new Date().toISOString()
-    } : undefined;
-
-    return {
-      id: existingInvoice?.id || Date.now().toString(),
-      invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
-      invoiceType: 'non-gst' as const,
-      customerId: selectedCustomer!.id,
-      vehicleId: selectedVehicle!.id,
-      items: invoiceItems,
-      subtotal: calculateSubtotal(),
-      discount,
-      taxRate,
-      taxAmount: 0,
-      extraCharges,
-      total,
-      status: payment && payment.amount >= total ? 'paid' : status,
-      createdAt: existingInvoice?.createdAt || new Date().toISOString(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      paidAt: payment && payment.amount >= total ? new Date().toISOString() : undefined,
-      notes,
-      laborCharges,
-      payments: payment ? [payment] : [],
-      kilometers
-    };
-  };
-
-  const handleSaveDraft = () => {
-    if (!selectedCustomer || !selectedVehicle) {
-      toast.error("Please select customer and vehicle before saving draft");
-      return;
-    }
-
-    const invoice = createInvoiceObject('draft');
-    onSave(invoice);
-    toast.success("Draft saved successfully!");
-  };
-
-  const handleCreateInvoice = () => {
+  const handleSaveInvoice = async () => {
     if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
       toast.error("Please fill in customer, vehicle, and at least one service/part");
       return;
     }
 
-    const invoice = createInvoiceObject('pending');
-    onSave(invoice);
-    toast.success("Non-GST Invoice created successfully!");
-  };
+    try {
+      const total = calculateTotal();
+      const subtotal = calculateSubtotal();
+      const discountAmount = (subtotal * discount) / 100;
 
-  const handlePrintPreview = () => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
-      return;
+      const invoiceData = {
+        invoice_number: generateInvoiceNumber(),
+        invoice_type: 'non-gst',
+        customer_id: selectedCustomer.id,
+        vehicle_id: selectedVehicle.id,
+        subtotal,
+        discount_percentage: discount,
+        discount_amount: discountAmount,
+        cgst_amount: 0,
+        sgst_amount: 0,
+        total_gst_amount: 0,
+        labor_charges: laborCharges,
+        extra_charges: extraCharges,
+        total,
+        status: 'pending',
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        notes,
+        kilometers
+      };
+
+      const { data: invoice, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert([invoiceData])
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      // Insert invoice items
+      const itemsData = invoiceItems.map(item => ({
+        invoice_id: invoice.id,
+        item_type: item.item_type,
+        item_id: item.item_id,
+        name: item.name,
+        sac_hsn_code: item.sac_hsn_code,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        discount_amount: item.discount_amount,
+        gst_rate: 0, // Non-GST
+        cgst_amount: 0,
+        sgst_amount: 0,
+        total_amount: item.total_amount
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .insert(itemsData);
+
+      if (itemsError) throw itemsError;
+
+      // Insert payment if amount provided
+      if (paymentAmount > 0) {
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert([{
+            invoice_id: invoice.id,
+            amount: paymentAmount,
+            method: paymentMethod,
+            status: 'completed'
+          }]);
+
+        if (paymentError) throw paymentError;
+      }
+
+      toast.success("Non-GST Invoice saved successfully!");
+      onSave(invoice);
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      toast.error("Failed to save invoice");
     }
-    setShowPrintPreview(true);
   };
 
   useEffect(() => {
     const total = calculateTotal();
     setPaymentAmount(total);
-  }, [invoiceItems, laborCharges, discount, taxRate, extraCharges]);
+  }, [invoiceItems, laborCharges, discount, extraCharges]);
 
-  if (showPrintPreview && selectedCustomer && selectedVehicle) {
-    const previewInvoice = createInvoiceObject('draft');
+  if (showAddCustomer) {
     return (
-      <InvoicePrintPreview
-        invoice={previewInvoice}
-        customer={selectedCustomer}
-        vehicle={selectedVehicle}
-        onClose={() => setShowPrintPreview(false)}
-      />
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Add New Customer</h2>
+          <Button variant="outline" onClick={() => setShowAddCustomer(false)}>
+            Back to Invoice
+          </Button>
+        </div>
+        <CustomerForm
+          onSave={() => {
+            setShowAddCustomer(false);
+            fetchData();
+            toast.success("Customer added! Please select from dropdown.");
+          }}
+          onCancel={() => setShowAddCustomer(false)}
+        />
+      </div>
     );
   }
 
@@ -256,31 +304,43 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
           <CardContent className="space-y-4">
             <div>
               <Label>Select Customer</Label>
-              <Select onValueChange={(value) => {
-                const customer = customers.find(c => c.id === value);
-                setSelectedCustomer(customer || null);
-                setSelectedVehicle(null);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map(customer => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.phone}
+              <div className="flex gap-2">
+                <Select onValueChange={(value) => {
+                  if (value === "add-new") {
+                    setShowAddCustomer(true);
+                    return;
+                  }
+                  const customer = customers.find(c => c.id === value);
+                  setSelectedCustomer(customer || null);
+                  setSelectedVehicle(null);
+                }}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Choose a customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add-new">
+                      <span className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New Customer
+                      </span>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    {customers.map(customer => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} - {customer.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {selectedCustomer && (
               <div className="p-3 bg-blue-50 rounded-lg">
                 <p className="font-medium">{selectedCustomer.name}</p>
                 <p className="text-sm text-gray-600">{selectedCustomer.phone}</p>
                 <p className="text-sm text-gray-600">{selectedCustomer.email}</p>
-                <Badge variant="secondary">
-                  Total Spent: ₹{selectedCustomer.totalSpent.toLocaleString()}
-                </Badge>
+                {selectedCustomer.gst_number && (
+                  <p className="text-sm text-blue-600">GST: {selectedCustomer.gst_number}</p>
+                )}
               </div>
             )}
           </CardContent>
@@ -309,7 +369,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                 <SelectContent>
                   {customerVehicles.map(vehicle => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                      {vehicle.make} {vehicle.model} - {vehicle.vehicle_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -318,12 +378,11 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
             {selectedVehicle && (
               <div className="p-3 bg-green-50 rounded-lg">
                 <p className="font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
-                <p className="text-sm text-gray-600">{selectedVehicle.vehicleNumber}</p>
-                <Badge variant="secondary">{selectedVehicle.vehicleType}</Badge>
+                <p className="text-sm text-gray-600">{selectedVehicle.vehicle_number}</p>
+                <Badge variant="secondary">{selectedVehicle.vehicle_type}</Badge>
               </div>
             )}
             
-            {/* Kilometers Input */}
             {selectedVehicle && (
               <div className="mt-4">
                 <Label className="flex items-center gap-2">
@@ -337,16 +396,13 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                   placeholder="Enter current kilometers"
                   className="mt-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Record the vehicle's current kilometer reading
-                </p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Services & Parts - Same as existing InvoiceForm */}
+      {/* Services & Parts */}
       <Card>
         <CardHeader>
           <CardTitle>Services & Parts</CardTitle>
@@ -367,12 +423,13 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                       <div>
                         <h4 className="font-medium">{service.name}</h4>
                         <p className="text-sm text-gray-600">{service.category}</p>
-                        <p className="text-lg font-semibold text-blue-600">₹{service.basePrice}</p>
+                        <p className="text-xs text-gray-500">SAC: {service.sac_code}</p>
+                        <p className="text-lg font-semibold text-blue-600">₹{service.base_price}</p>
                       </div>
                       <Button 
                         size="sm" 
                         onClick={() => addService(service.id)}
-                        disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
+                        disabled={invoiceItems.some(item => item.item_id === service.id && item.item_type === 'service')}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -390,13 +447,14 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                       <div>
                         <h4 className="font-medium">{part.name}</h4>
                         <p className="text-sm text-gray-600">{part.category}</p>
+                        <p className="text-xs text-gray-500">HSN: {part.hsn_code}</p>
                         <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
-                        <p className="text-xs text-gray-500">Stock: {part.stockQuantity}</p>
+                        <p className="text-xs text-gray-500">Stock: {part.stock_quantity}</p>
                       </div>
                       <Button 
                         size="sm" 
                         onClick={() => addPart(part.id)}
-                        disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
+                        disabled={invoiceItems.some(item => item.item_id === part.id && item.item_type === 'part')}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -416,7 +474,8 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h4 className="font-medium">{item.name}</h4>
-                          <p className="text-sm text-gray-600 capitalize">{item.type}</p>
+                          <p className="text-sm text-gray-600 capitalize">{item.item_type}</p>
+                          <p className="text-xs text-gray-500">{item.item_type === 'service' ? 'SAC' : 'HSN'}: {item.sac_hsn_code}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="text-right">
@@ -432,7 +491,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                           <div className="text-right">
                             <Input
                               type="number"
-                              value={item.discount}
+                              value={item.discount_amount}
                               onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
                               className="w-20 text-center"
                               min="0"
@@ -440,7 +499,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
                             <p className="text-xs text-gray-500">Discount</p>
                           </div>
                           <div className="text-right min-w-[80px]">
-                            <p className="font-semibold">₹{item.total}</p>
+                            <p className="font-semibold">₹{item.total_amount}</p>
                             <p className="text-xs text-gray-500">Total</p>
                           </div>
                           <Button size="sm" variant="ghost" onClick={() => removeItem(item.id)}>
@@ -457,7 +516,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
         </CardContent>
       </Card>
 
-      {/* Additional Charges */}
+      {/* Additional Charges & Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -503,27 +562,15 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Discount (%)</Label>
-                <Input
-                  type="number"
-                  value={discount}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                  min="0"
-                  max="100"
-                />
-              </div>
-              <div>
-                <Label>Tax Rate (%) - Non-GST</Label>
-                <Input
-                  type="number"
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                  disabled
-                  className="bg-gray-100"
-                />
-              </div>
+            <div>
+              <Label>Discount (%)</Label>
+              <Input
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                min="0"
+                max="100"
+              />
             </div>
 
             <div>
@@ -538,7 +585,6 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
           </CardContent>
         </Card>
 
-        {/* Payment & Invoice Summary */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -579,7 +625,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
               
               <div>
                 <Label>Payment Method</Label>
-                <Select value={paymentMethod} onValueChange={(value: Payment['method']) => setPaymentMethod(value)}>
+                <Select value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -614,24 +660,13 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
       {/* Action Buttons */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={handleSaveDraft} variant="outline">
+          <div className="flex gap-3">
+            <Button onClick={handleSaveInvoice} className="bg-blue-600 hover:bg-blue-700">
               <Save className="h-4 w-4 mr-2" />
-              Save as Draft
-            </Button>
-            <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
-              <Receipt className="h-4 w-4 mr-2" />
-              Create Invoice
-            </Button>
-            <Button onClick={handlePrintPreview} variant="outline">
-              <Printer className="h-4 w-4 mr-2" />
-              Print Preview
-            </Button>
-            <Button variant="outline">
-              <Mail className="h-4 w-4 mr-2" />
-              Email Invoice
+              Save Invoice
             </Button>
             <Button variant="outline" onClick={onCancel}>
+              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
           </div>

@@ -1,40 +1,39 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Eye,
-  Edit,
   Printer,
-  Mail,
   Trash2,
-  CheckCircle,
+  Check,
   Clock,
+  CheckCircle,
   AlertCircle,
+  Receipt,
   X
 } from "lucide-react";
-import { Invoice } from "@/types/billing";
 
 interface MobileInvoiceCardProps {
-  invoice: Invoice;
+  invoice: any;
   customerName: string;
   vehicleInfo: string;
-  onEdit: (invoice: Invoice) => void;
+  onEdit: (invoice: any) => void;
   onDelete: (invoiceId: string) => void;
-  onPrint: (invoice: Invoice) => void;
-  onEmail: (invoice: Invoice) => void;
+  onPrint: (invoice: any) => void;
+  onMarkPaid?: (invoiceId: string) => void;
 }
 
-const MobileInvoiceCard = ({
-  invoice,
-  customerName,
-  vehicleInfo,
-  onEdit,
-  onDelete,
+const MobileInvoiceCard = ({ 
+  invoice, 
+  customerName, 
+  vehicleInfo, 
+  onEdit, 
+  onDelete, 
   onPrint,
-  onEmail
+  onMarkPaid
 }: MobileInvoiceCardProps) => {
-  const getStatusColor = (status: Invoice['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'default';
       case 'pending': return 'secondary';
@@ -45,71 +44,81 @@ const MobileInvoiceCard = ({
     }
   };
 
-  const getStatusIcon = (status: Invoice['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid': return <CheckCircle className="h-4 w-4" />;
       case 'pending': return <Clock className="h-4 w-4" />;
       case 'overdue': return <AlertCircle className="h-4 w-4" />;
-      case 'draft': return <Edit className="h-4 w-4" />;
+      case 'draft': return <Receipt className="h-4 w-4" />;
       case 'cancelled': return <X className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      default: return <Receipt className="h-4 w-4" />;
     }
   };
 
   return (
-    <Card className="mb-4">
+    <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-              {invoice.invoiceNumber}
-            </h3>
-            <p className="text-sm text-gray-600 mb-1">{customerName}</p>
-            <p className="text-xs text-gray-500">{vehicleInfo}</p>
-          </div>
-          <div className="text-right ml-4">
-            <p className="font-bold text-lg text-gray-900 mb-1">
-              ₹{invoice.total.toFixed(2)}
-            </p>
-            <Badge variant={getStatusColor(invoice.status)} className="capitalize">
-              <div className="flex items-center gap-1">
-                {getStatusIcon(invoice.status)}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              {getStatusIcon(invoice.status)}
+            </div>
+            <div>
+              <p className="font-medium text-sm">{invoice.invoice_number}</p>
+              <Badge variant={getStatusColor(invoice.status)} className="text-xs mt-1">
                 {invoice.status}
-              </div>
-            </Badge>
+              </Badge>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold">₹{(invoice.total || 0).toFixed(2)}</p>
+            <p className="text-xs text-gray-500">
+              Tax: ₹{(invoice.total_gst_amount || 0).toFixed(2)}
+            </p>
           </div>
         </div>
 
-        <div className="flex justify-between items-center text-xs text-gray-500 mb-4">
-          <span>Created: {new Date(invoice.createdAt).toLocaleDateString()}</span>
-          {invoice.status === 'overdue' && (
-            <span className="text-red-500">
-              Due: {new Date(invoice.dueDate).toLocaleDateString()}
-            </span>
+        <div className="space-y-1 mb-3">
+          <p className="text-sm text-gray-600">{customerName}</p>
+          <p className="text-sm text-gray-600">{vehicleInfo}</p>
+          <p className="text-xs text-gray-500">
+            Created: {new Date(invoice.created_at).toLocaleDateString()}
+          </p>
+          {invoice.kilometers && (
+            <p className="text-xs text-gray-500">
+              KM: {invoice.kilometers.toLocaleString()}
+            </p>
           )}
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
-          <Button size="sm" variant="outline" onClick={() => onEdit(invoice)} className="h-12 flex flex-col gap-1">
-            <Eye className="h-4 w-4" />
-            <span className="text-xs">View</span>
+        <div className="flex gap-2">
+          <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)} className="flex-1">
+            <Eye className="h-4 w-4 mr-1" />
+            View
           </Button>
-          <Button size="sm" variant="outline" onClick={() => onEdit(invoice)} className="h-12 flex flex-col gap-1">
-            <Edit className="h-4 w-4" />
-            <span className="text-xs">Edit</span>
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => onPrint(invoice)} className="h-12 flex flex-col gap-1">
+          
+          {invoice.status === 'pending' && onMarkPaid && (
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={() => onMarkPaid(invoice.id)}
+              className="text-green-600 hover:text-green-700"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+          )}
+          
+          <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)}>
             <Printer className="h-4 w-4" />
-            <span className="text-xs">Print</span>
           </Button>
+          
           <Button 
             size="sm" 
-            variant="outline" 
+            variant="ghost" 
             onClick={() => onDelete(invoice.id)}
-            className="h-12 flex flex-col gap-1 text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
-            <span className="text-xs">Delete</span>
           </Button>
         </div>
       </CardContent>

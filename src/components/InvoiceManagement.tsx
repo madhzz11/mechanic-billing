@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,7 @@ const InvoiceManagement = () => {
       }
 
       if (selectedStatus && selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
+        query = query.eq('status', selectedStatus as 'draft' | 'sent' | 'paid' | 'pending' | 'overdue' | 'cancelled');
       }
 
       const { count, data: invoicesData, error } = await query;

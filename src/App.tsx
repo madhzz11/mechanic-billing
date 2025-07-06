@@ -27,8 +27,7 @@ const AnimatedRoutes = () => {
   };
 
   const pageTransition = {
-    duration: 0.3,
-    ease: "easeInOut"
+    duration: 0.3
   };
 
   return (

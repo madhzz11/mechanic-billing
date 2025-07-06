@@ -94,22 +94,9 @@ const MobileSidebar = () => {
         <SidebarContent />
       </div>
 
-      {/* Mobile Menu Button & Drawer */}
+      {/* Mobile - No hamburger menu, sidebar will be triggered by other means if needed */}
       <div className="md:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="fixed top-4 left-4 z-50 bg-white shadow-md transition-transform duration-200 hover:scale-105 w-10 h-10"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-0">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
+        {/* Remove the floating hamburger menu button completely */}
       </div>
     </>
   );

@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
 interface InvoiceViewModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,30 +11,32 @@ interface InvoiceViewModalProps {
   vehicle: any;
   onPrint: () => void;
 }
-
-const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint }: InvoiceViewModalProps) => {
+const InvoiceViewModal = ({
+  isOpen,
+  onClose,
+  invoice,
+  customer,
+  vehicle,
+  onPrint
+}: InvoiceViewModalProps) => {
   const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     if (invoice?.id && isOpen) {
       fetchInvoiceItems();
     }
   }, [invoice?.id, isOpen]);
-
   const fetchInvoiceItems = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', invoice.id);
-
+      const {
+        data,
+        error
+      } = await supabase.from('invoice_items').select('*').eq('invoice_id', invoice.id);
       if (error) {
         console.error('Error fetching invoice items:', error);
         return;
       }
-
       console.log('Fetched invoice items:', data);
       setInvoiceItems(data || []);
     } catch (error) {
@@ -45,27 +45,21 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
       setLoading(false);
     }
   };
-
   if (!invoice || !customer || !vehicle) return null;
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN');
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <div className="flex justify-between items-center">
             <DialogTitle>Invoice Preview</DialogTitle>
             <div className="flex gap-2">
-              <Button onClick={onPrint} size="sm">
+              <Button onClick={onPrint} size="sm" className="mx-[30px]">
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              <Button variant="outline" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
+              
             </div>
           </div>
         </DialogHeader>
@@ -75,11 +69,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
           {/* Header */}
           <div className="text-center border-b-2 border-black pb-4 mb-6">
             <div className="flex items-center justify-center mb-2">
-              <img 
-                src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
-                alt="OM MURUGAN AUTO WORKS" 
-                className="h-12 w-12 mr-3"
-              />
+              <img src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" alt="OM MURUGAN AUTO WORKS" className="h-12 w-12 mr-3" />
               <div>
                 <h1 className="text-2xl font-bold">OM MURUGAN AUTO WORKS</h1>
                 <p className="text-sm">Complete Auto Care Solutions</p>
@@ -107,9 +97,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                 <p className="font-semibold">{customer.name}</p>
                 <p>{customer.phone}</p>
                 <p>{customer.email}</p>
-                {customer.gst_number && (
-                  <p><strong>GST No:</strong> {customer.gst_number}</p>
-                )}
+                {customer.gst_number && <p><strong>GST No:</strong> {customer.gst_number}</p>}
               </div>
             </div>
             <div className="text-right">
@@ -132,9 +120,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
               </div>
               <div>
                 <p><strong>Type:</strong> {vehicle.vehicle_type}</p>
-                {invoice.kilometers && (
-                  <p><strong>Kilometers:</strong> {invoice.kilometers.toLocaleString()} km</p>
-                )}
+                {invoice.kilometers && <p><strong>Kilometers:</strong> {invoice.kilometers.toLocaleString()} km</p>}
               </div>
             </div>
           </div>
@@ -153,8 +139,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
             </thead>
             <tbody>
               {/* Display invoice items */}
-              {invoiceItems.map((item: any, index: number) => (
-                <tr key={index}>
+              {invoiceItems.map((item: any, index: number) => <tr key={index}>
                   <td className="border border-black p-2">{item.sac_hsn_code || '-'}</td>
                   <td className="border border-black p-2">
                     {item.name}
@@ -164,12 +149,10 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                   <td className="border border-black p-2 text-right">₹{item.unit_price.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹{(item.discount_amount || 0).toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹{item.total_amount.toFixed(2)}</td>
-                </tr>
-              ))}
+                </tr>)}
               
               {/* Labor charges if present */}
-              {invoice.labor_charges > 0 && (
-                <tr>
+              {invoice.labor_charges > 0 && <tr>
                   <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2">
                     Labor Charges
@@ -179,12 +162,10 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                   <td className="border border-black p-2 text-right">₹{invoice.labor_charges.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹0.00</td>
                   <td className="border border-black p-2 text-right">₹{invoice.labor_charges.toFixed(2)}</td>
-                </tr>
-              )}
+                </tr>}
               
               {/* Extra charges if present */}
-              {invoice.extra_charges?.map((charge: any, index: number) => (
-                <tr key={`extra-${index}`}>
+              {invoice.extra_charges?.map((charge: any, index: number) => <tr key={`extra-${index}`}>
                   <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2">
                     {charge.name}
@@ -194,25 +175,20 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                   <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹0.00</td>
                   <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
-                </tr>
-              ))}
+                </tr>)}
               
               {/* Show loading state or empty message */}
-              {loading && (
-                <tr>
+              {loading && <tr>
                   <td colSpan={6} className="border border-black p-4 text-center">
                     Loading invoice items...
                   </td>
-                </tr>
-              )}
+                </tr>}
               
-              {!loading && invoiceItems.length === 0 && invoice.labor_charges === 0 && (!invoice.extra_charges || invoice.extra_charges.length === 0) && (
-                <tr>
+              {!loading && invoiceItems.length === 0 && invoice.labor_charges === 0 && (!invoice.extra_charges || invoice.extra_charges.length === 0) && <tr>
                   <td colSpan={6} className="border border-black p-4 text-center text-gray-500">
                     No items found for this invoice
                   </td>
-                </tr>
-              )}
+                </tr>}
             </tbody>
           </table>
 
@@ -223,8 +199,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                 <span>Subtotal:</span>
                 <span>₹{invoice.subtotal.toFixed(2)}</span>
               </div>
-              {invoice.invoice_type === 'gst' && (
-                <>
+              {invoice.invoice_type === 'gst' && <>
                   <div className="flex justify-between">
                     <span>CGST:</span>
                     <span>₹{(invoice.cgst_amount || 0).toFixed(2)}</span>
@@ -233,8 +208,7 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                     <span>SGST:</span>
                     <span>₹{(invoice.sgst_amount || 0).toFixed(2)}</span>
                   </div>
-                </>
-              )}
+                </>}
               <div className="border-t border-black pt-1">
                 <div className="flex justify-between font-bold">
                   <span>Total Amount:</span>
@@ -245,12 +219,10 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
           </div>
 
           {/* Notes */}
-          {invoice.notes && (
-            <div className="mb-6">
+          {invoice.notes && <div className="mb-6">
               <h3 className="font-bold mb-2">NOTES:</h3>
               <p className="text-sm border p-3 rounded">{invoice.notes}</p>
-            </div>
-          )}
+            </div>}
 
           {/* Terms and Signature */}
           <div className="grid grid-cols-2 gap-8 mt-8">
@@ -271,8 +243,6 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default InvoiceViewModal;

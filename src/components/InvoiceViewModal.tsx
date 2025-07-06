@@ -120,17 +120,50 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="border border-black p-2">-</td>
-                <td className="border border-black p-2">
-                  Service Charges
-                  <div className="text-xs text-gray-600">(Service)</div>
-                </td>
-                <td className="border border-black p-2 text-center">1</td>
-                <td className="border border-black p-2 text-right">₹{invoice.subtotal.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹0.00</td>
-                <td className="border border-black p-2 text-right">₹{invoice.subtotal.toFixed(2)}</td>
-              </tr>
+              {/* Display invoice items with their HSN/SAC codes */}
+              {invoice.invoice_items?.map((item: any, index: number) => (
+                <tr key={index}>
+                  <td className="border border-black p-2">{item.sac_hsn_code || '-'}</td>
+                  <td className="border border-black p-2">
+                    {item.name}
+                    <div className="text-xs text-gray-600 capitalize">({item.item_type})</div>
+                  </td>
+                  <td className="border border-black p-2 text-center">{item.quantity}</td>
+                  <td className="border border-black p-2 text-right">₹{item.unit_price.toFixed(2)}</td>
+                  <td className="border border-black p-2 text-right">₹{(item.discount_amount || 0).toFixed(2)}</td>
+                  <td className="border border-black p-2 text-right">₹{item.total_amount.toFixed(2)}</td>
+                </tr>
+              ))}
+              
+              {/* Labor charges if present */}
+              {invoice.labor_charges > 0 && (
+                <tr>
+                  <td className="border border-black p-2">-</td>
+                  <td className="border border-black p-2">
+                    Labor Charges
+                    <div className="text-xs text-gray-600">(Service)</div>
+                  </td>
+                  <td className="border border-black p-2 text-center">1</td>
+                  <td className="border border-black p-2 text-right">₹{invoice.labor_charges.toFixed(2)}</td>
+                  <td className="border border-black p-2 text-right">₹0.00</td>
+                  <td className="border border-black p-2 text-right">₹{invoice.labor_charges.toFixed(2)}</td>
+                </tr>
+              )}
+              
+              {/* Extra charges if present */}
+              {invoice.extra_charges?.map((charge: any, index: number) => (
+                <tr key={`extra-${index}`}>
+                  <td className="border border-black p-2">-</td>
+                  <td className="border border-black p-2">
+                    {charge.name}
+                    <div className="text-xs text-gray-600">(Extra Charge)</div>
+                  </td>
+                  <td className="border border-black p-2 text-center">1</td>
+                  <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
+                  <td className="border border-black p-2 text-right">₹0.00</td>
+                  <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
@@ -141,10 +174,18 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                 <span>Subtotal:</span>
                 <span>₹{invoice.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax (0%):</span>
-                <span>₹0.00</span>
-              </div>
+              {invoice.invoice_type === 'gst' && (
+                <>
+                  <div className="flex justify-between">
+                    <span>CGST:</span>
+                    <span>₹{(invoice.cgst_amount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>SGST:</span>
+                    <span>₹{(invoice.sgst_amount || 0).toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="border-t border-black pt-1">
                 <div className="flex justify-between font-bold">
                   <span>Total Amount:</span>
@@ -153,6 +194,14 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
               </div>
             </div>
           </div>
+
+          {/* Notes */}
+          {invoice.notes && (
+            <div className="mb-6">
+              <h3 className="font-bold mb-2">NOTES:</h3>
+              <p className="text-sm border p-3 rounded">{invoice.notes}</p>
+            </div>
+          )}
 
           {/* Terms and Signature */}
           <div className="grid grid-cols-2 gap-8 mt-8">

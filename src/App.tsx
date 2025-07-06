@@ -23,16 +23,63 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<SplashScreen />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
-            <Route path="/invoices" element={<AuthGuard><Invoices /></AuthGuard>} />
-            <Route path="/customers" element={<AuthGuard><Customers /></AuthGuard>} />
-            <Route path="/services" element={<AuthGuard><Services /></AuthGuard>} />
-            <Route path="/reports" element={<AuthGuard><Reports /></AuthGuard>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="transition-all duration-300 ease-in-out">
+            <Routes>
+              <Route path="/" element={<SplashScreen />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <AuthGuard>
+                    <div className="animate-fade-in">
+                      <Dashboard />
+                    </div>
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/invoices" 
+                element={
+                  <AuthGuard>
+                    <div className="animate-fade-in">
+                      <Invoices />
+                    </div>
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/customers" 
+                element={
+                  <AuthGuard>
+                    <div className="animate-fade-in">
+                      <Customers />
+                    </div>
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/services" 
+                element={
+                  <AuthGuard>
+                    <div className="animate-fade-in">
+                      <Services />
+                    </div>
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <AuthGuard>
+                    <div className="animate-fade-in">
+                      <Reports />
+                    </div>
+                  </AuthGuard>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
         </BrowserRouter>
       </div>
     </TooltipProvider>

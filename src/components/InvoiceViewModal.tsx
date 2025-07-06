@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InvoiceViewModalProps {
   isOpen: boolean;
@@ -14,6 +15,37 @@ interface InvoiceViewModalProps {
 }
 
 const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint }: InvoiceViewModalProps) => {
+  const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (invoice?.id && isOpen) {
+      fetchInvoiceItems();
+    }
+  }, [invoice?.id, isOpen]);
+
+  const fetchInvoiceItems = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', invoice.id);
+
+      if (error) {
+        console.error('Error fetching invoice items:', error);
+        return;
+      }
+
+      console.log('Fetched invoice items:', data);
+      setInvoiceItems(data || []);
+    } catch (error) {
+      console.error('Error fetching invoice items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!invoice || !customer || !vehicle) return null;
 
   const formatDate = (dateString: string) => {
@@ -120,8 +152,8 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
               </tr>
             </thead>
             <tbody>
-              {/* Display invoice items with their HSN/SAC codes */}
-              {invoice.invoice_items?.map((item: any, index: number) => (
+              {/* Display invoice items */}
+              {invoiceItems.map((item: any, index: number) => (
                 <tr key={index}>
                   <td className="border border-black p-2">{item.sac_hsn_code || '-'}</td>
                   <td className="border border-black p-2">
@@ -164,6 +196,23 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice, customer, vehicle, onPrint
                   <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
                 </tr>
               ))}
+              
+              {/* Show loading state or empty message */}
+              {loading && (
+                <tr>
+                  <td colSpan={6} className="border border-black p-4 text-center">
+                    Loading invoice items...
+                  </td>
+                </tr>
+              )}
+              
+              {!loading && invoiceItems.length === 0 && invoice.labor_charges === 0 && (!invoice.extra_charges || invoice.extra_charges.length === 0) && (
+                <tr>
+                  <td colSpan={6} className="border border-black p-4 text-center text-gray-500">
+                    No items found for this invoice
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
 

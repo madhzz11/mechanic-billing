@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import SplashScreen from "./pages/SplashScreen";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +17,142 @@ import AuthGuard from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.3
+  };
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <motion.div
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+          >
+            <SplashScreen />
+          </motion.div>
+        } />
+        <Route path="/auth" element={
+          <motion.div
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+          >
+            <Auth />
+          </motion.div>
+        } />
+        <Route 
+          path="/dashboard" 
+          element={
+            <AuthGuard>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Dashboard />
+              </motion.div>
+            </AuthGuard>
+          } 
+        />
+        <Route 
+          path="/invoices" 
+          element={
+            <AuthGuard>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Invoices />
+              </motion.div>
+            </AuthGuard>
+          } 
+        />
+        <Route 
+          path="/customers" 
+          element={
+            <AuthGuard>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Customers />
+              </motion.div>
+            </AuthGuard>
+          } 
+        />
+        <Route 
+          path="/services" 
+          element={
+            <AuthGuard>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Services />
+              </motion.div>
+            </AuthGuard>
+          } 
+        />
+        <Route 
+          path="/reports" 
+          element={
+            <AuthGuard>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Reports />
+              </motion.div>
+            </AuthGuard>
+          } 
+        />
+        <Route path="*" element={
+          <motion.div
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+          >
+            <NotFound />
+          </motion.div>
+        } />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -23,63 +160,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="transition-all duration-300 ease-in-out">
-            <Routes>
-              <Route path="/" element={<SplashScreen />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <AuthGuard>
-                    <div className="animate-fade-in">
-                      <Dashboard />
-                    </div>
-                  </AuthGuard>
-                } 
-              />
-              <Route 
-                path="/invoices" 
-                element={
-                  <AuthGuard>
-                    <div className="animate-fade-in">
-                      <Invoices />
-                    </div>
-                  </AuthGuard>
-                } 
-              />
-              <Route 
-                path="/customers" 
-                element={
-                  <AuthGuard>
-                    <div className="animate-fade-in">
-                      <Customers />
-                    </div>
-                  </AuthGuard>
-                } 
-              />
-              <Route 
-                path="/services" 
-                element={
-                  <AuthGuard>
-                    <div className="animate-fade-in">
-                      <Services />
-                    </div>
-                  </AuthGuard>
-                } 
-              />
-              <Route 
-                path="/reports" 
-                element={
-                  <AuthGuard>
-                    <div className="animate-fade-in">
-                      <Reports />
-                    </div>
-                  </AuthGuard>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <AnimatedRoutes />
         </BrowserRouter>
       </div>
     </TooltipProvider>

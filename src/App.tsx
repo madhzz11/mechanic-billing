@@ -27,9 +27,8 @@ const AnimatedRoutes = () => {
   };
 
   const pageTransition = {
-    type: "tween",
-    ease: "anticipate",
-    duration: 0.3
+    duration: 0.3,
+    ease: "easeInOut"
   };
 
   return (

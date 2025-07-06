@@ -17,6 +17,7 @@ import {
 import MobileSidebar from "@/components/MobileSidebar";
 import BottomNavigation from "@/components/BottomNavigation";
 import LogoutButton from "@/components/LogoutButton";
+import InvoiceViewModal from "@/components/InvoiceViewModal";
 import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
@@ -33,6 +34,10 @@ const Dashboard = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -106,6 +111,29 @@ const Dashboard = () => {
     }
   };
 
+  const handleInvoiceClick = (invoice: any) => {
+    const customer = customers.find(c => c.id === invoice.customer_id);
+    const vehicle = vehicles.find(v => v.id === invoice.vehicle_id);
+    
+    if (customer && vehicle) {
+      setSelectedInvoice(invoice);
+      setSelectedCustomer(customer);
+      setSelectedVehicle(vehicle);
+      setShowInvoiceModal(true);
+    }
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setShowInvoiceModal(false);
+    setSelectedInvoice(null);
+    setSelectedCustomer(null);
+    setSelectedVehicle(null);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -121,7 +149,7 @@ const Dashboard = () => {
         
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
                 <p className="text-sm md:text-base text-gray-600">Welcome back! Here's your business overview.</p>
@@ -135,50 +163,50 @@ const Dashboard = () => {
           <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6 space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
                     </div>
-                    <Users className="h-8 w-8 text-blue-600" />
+                    <Users className="h-6 md:h-8 w-6 md:w-8 text-blue-600" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Vehicles</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalVehicles}</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.totalVehicles}</p>
                     </div>
-                    <Car className="h-8 w-8 text-green-600" />
+                    <Car className="h-6 md:h-8 w-6 md:w-8 text-green-600" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Invoices</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalInvoices}</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900">{stats.totalInvoices}</p>
                     </div>
-                    <Receipt className="h-8 w-8 text-orange-600" />
+                    <Receipt className="h-6 md:h-8 w-6 md:w-8 text-orange-600" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                      <p className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue.toLocaleString()}</p>
+                      <p className="text-lg md:text-2xl font-bold text-gray-900">₹{stats.totalRevenue.toLocaleString()}</p>
                     </div>
-                    <DollarSign className="h-8 w-8 text-purple-600" />
+                    <DollarSign className="h-6 md:h-8 w-6 md:w-8 text-purple-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -186,7 +214,7 @@ const Dashboard = () => {
 
             {/* Invoice Status Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -198,7 +226,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -210,7 +238,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -240,7 +268,11 @@ const Dashboard = () => {
                 ) : (
                   <div className="space-y-4">
                     {recentInvoices.map((invoice) => (
-                      <div key={invoice.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div 
+                        key={invoice.id} 
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleInvoiceClick(invoice)}
+                      >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             {getStatusIcon(invoice.status)}
@@ -272,6 +304,18 @@ const Dashboard = () => {
       </div>
       
       <BottomNavigation />
+
+      {/* Invoice View Modal */}
+      {selectedInvoice && selectedCustomer && selectedVehicle && (
+        <InvoiceViewModal
+          isOpen={showInvoiceModal}
+          onClose={handleCloseInvoiceModal}
+          invoice={selectedInvoice}
+          customer={selectedCustomer}
+          vehicle={selectedVehicle}
+          onPrint={handlePrint}
+        />
+      )}
     </div>
   );
 };

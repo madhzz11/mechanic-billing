@@ -78,19 +78,19 @@ const Customers = () => {
 
   if (showCreateForm) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
         <div className="flex w-full">
           <MobileSidebar />
           
-          <div className="flex-1 flex flex-col min-h-screen">
+          <div className="flex-1 flex flex-col min-h-screen w-full overflow-x-hidden">
             <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">Add New Customer</h1>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline" 
                     onClick={() => setShowCreateForm(false)}
-                    className="hidden md:block"
+                    className="flex-1 sm:flex-initial"
                   >
                     Back to Customers
                   </Button>
@@ -101,7 +101,7 @@ const Customers = () => {
               </div>
             </header>
 
-            <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6">
+            <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6 w-full overflow-x-hidden">
               <CustomerForm
                 onSave={handleSaveCustomer}
                 onCancel={() => setShowCreateForm(false)}
@@ -124,11 +124,11 @@ const Customers = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <div className="flex w-full">
         <MobileSidebar />
         
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex-1 flex flex-col min-h-screen w-full overflow-x-hidden">
           <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
             <div className="flex justify-between items-center">
               <h1 className="text-xl md:text-2xl font-bold text-gray-900">Customers</h1>
@@ -138,14 +138,14 @@ const Customers = () => {
             </div>
           </header>
 
-          <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6">
+          <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6 w-full overflow-x-hidden">
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
-                    <Users className="h-8 w-8 text-blue-600" />
-                    <div>
+                    <Users className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                    <div className="min-w-0">
                       <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
                       <p className="text-sm text-gray-600">Total Customers</p>
                     </div>
@@ -156,8 +156,8 @@ const Customers = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
-                    <Car className="h-8 w-8 text-green-600" />
-                    <div>
+                    <Car className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    <div className="min-w-0">
                       <p className="text-2xl font-bold text-gray-900">{vehicles.length}</p>
                       <p className="text-sm text-gray-600">Total Vehicles</p>
                     </div>
@@ -168,10 +168,10 @@ const Customers = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="h-8 px-3">
+                    <Badge variant="outline" className="h-8 px-3 flex-shrink-0">
                       GST
                     </Badge>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-2xl font-bold text-gray-900">
                         {customers.filter(c => c.gst_number).length}
                       </p>
@@ -183,19 +183,19 @@ const Customers = () => {
             </div>
 
             {/* Search and Add */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-              <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input 
                   placeholder="Search customers..." 
-                  className="pl-10"
+                  className="pl-10 w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <Button 
                 onClick={() => setShowCreateForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                className="bg-blue-600 hover:bg-blue-700 w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Customer
@@ -217,16 +217,16 @@ const Customers = () => {
                 </div>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <Card key={customer.id} className="hover:shadow-md transition-shadow">
+                  <Card key={customer.id} className="hover:shadow-md transition-shadow w-full">
                     <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{customer.name}</CardTitle>
-                          <div className="flex gap-2 mt-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">{customer.name}</CardTitle>
+                          <div className="flex flex-wrap gap-2 mt-2">
                             {customer.gst_number && (
-                              <Badge variant="secondary">GST Customer</Badge>
+                              <Badge variant="secondary" className="text-xs">GST Customer</Badge>
                             )}
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="text-xs">
                               {getCustomerVehicles(customer.id).length} Vehicle(s)
                             </Badge>
                           </div>
@@ -235,6 +235,7 @@ const Customers = () => {
                           size="sm" 
                           variant="ghost"
                           onClick={() => handleEditCustomer(customer)}
+                          className="flex-shrink-0"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -242,28 +243,28 @@ const Customers = () => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span>{customer.phone}</span>
+                        <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <span className="truncate">{customer.phone}</span>
                       </div>
                       
                       {customer.email && (
                         <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-4 w-4 text-gray-500" />
-                          <span>{customer.email}</span>
+                          <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <span className="truncate">{customer.email}</span>
                         </div>
                       )}
                       
                       {customer.address && (
                         <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-600">{customer.address}</span>
+                          <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <span className="text-gray-600 truncate">{customer.address}</span>
                         </div>
                       )}
                       
                       {customer.gst_number && (
                         <div className="text-sm">
                           <span className="font-medium">GST Number: </span>
-                          <span className="text-gray-600">{customer.gst_number}</span>
+                          <span className="text-gray-600 break-all">{customer.gst_number}</span>
                         </div>
                       )}
 
@@ -274,8 +275,8 @@ const Customers = () => {
                           <div className="space-y-1">
                             {getCustomerVehicles(customer.id).map((vehicle) => (
                               <div key={vehicle.id} className="flex items-center gap-2 text-sm text-gray-600">
-                                <Car className="h-3 w-3" />
-                                <span>{vehicle.make} {vehicle.model} - {vehicle.vehicle_number}</span>
+                                <Car className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{vehicle.make} {vehicle.model} - {vehicle.vehicle_number}</span>
                               </div>
                             ))}
                           </div>

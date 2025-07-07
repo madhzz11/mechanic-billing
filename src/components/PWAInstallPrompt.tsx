@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -17,6 +18,7 @@ const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check if app is already installed
@@ -80,7 +82,13 @@ const PWAInstallPrompt = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
+    <div className={`
+      fixed z-50 
+      ${isMobile 
+        ? 'bottom-4 left-4 right-4' 
+        : 'top-4 right-4 w-80'
+      }
+    `}>
       <Card className="bg-white shadow-lg border-2 border-blue-200">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
@@ -97,7 +105,10 @@ const PWAInstallPrompt = () => {
                   Install Auto Bill Guru
                 </h3>
                 <p className="text-xs text-gray-600 mt-1">
-                  Add to your home screen for quick access
+                  {isMobile 
+                    ? 'Add to your home screen for quick access' 
+                    : 'Install the app for a better experience'
+                  }
                 </p>
               </div>
             </div>

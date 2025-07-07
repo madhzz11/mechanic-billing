@@ -1,0 +1,35 @@
+
+{
+  "name": "OM MURUGAN AUTO WORKS - Billing System",
+  "short_name": "Auto Bill Guru",
+  "description": "Complete billing solution for automotive services",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png",
+      "sizes": "320x640",
+      "type": "image/png"
+    }
+  ]
+}

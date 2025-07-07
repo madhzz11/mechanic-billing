@@ -14,6 +14,7 @@ import Services from "./pages/Services";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +160,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AnimatedRoutes />
+          <PWAInstallPrompt />
         </BrowserRouter>
       </div>
     </TooltipProvider>

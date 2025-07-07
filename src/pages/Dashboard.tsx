@@ -1,25 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  Car, 
-  Receipt, 
-  DollarSign, 
-  TrendingUp, 
-  Calendar,
-  Activity,
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from "lucide-react";
+import { Users, Car, Receipt, DollarSign, TrendingUp, Calendar, Activity, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import MobileSidebar from "@/components/MobileSidebar";
 import BottomNavigation from "@/components/BottomNavigation";
 import LogoutButton from "@/components/LogoutButton";
 import InvoiceViewModal from "@/components/InvoiceViewModal";
 import { supabase } from "@/integrations/supabase/client";
-
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalCustomers: 0,
@@ -38,30 +25,22 @@ const Dashboard = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch all data in parallel
-      const [customersData, vehiclesData, invoicesData] = await Promise.all([
-        supabase.from('customers').select('*'),
-        supabase.from('vehicles').select('*'),
-        supabase.from('invoices').select('*').order('created_at', { ascending: false })
-      ]);
 
+      // Fetch all data in parallel
+      const [customersData, vehiclesData, invoicesData] = await Promise.all([supabase.from('customers').select('*'), supabase.from('vehicles').select('*'), supabase.from('invoices').select('*').order('created_at', {
+        ascending: false
+      })]);
       if (customersData.data) setCustomers(customersData.data);
       if (vehiclesData.data) setVehicles(vehiclesData.data);
-      
       if (invoicesData.data) {
         const invoices = invoicesData.data;
         setRecentInvoices(invoices.slice(0, 5)); // Get last 5 invoices
 
         // Calculate stats
-        const totalRevenue = invoices
-          .filter(inv => inv.status === 'paid')
-          .reduce((sum, inv) => sum + (inv.total || 0), 0);
-
+        const totalRevenue = invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0);
         setStats({
           totalCustomers: customersData.data?.length || 0,
           totalVehicles: vehiclesData.data?.length || 0,
@@ -78,43 +57,45 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
   const getCustomerName = (customerId: string) => {
     return customers.find(c => c.id === customerId)?.name || "Unknown Customer";
   };
-
   const getVehicleInfo = (vehicleId: string) => {
     const vehicle = vehicles.find(v => v.id === vehicleId);
     return vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle";
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'default';
-      case 'pending': return 'secondary';
-      case 'overdue': return 'destructive';
-      case 'draft': return 'outline';
-      default: return 'secondary';
+      case 'paid':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'overdue':
+        return 'destructive';
+      case 'draft':
+        return 'outline';
+      default:
+        return 'secondary';
     }
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid': return <CheckCircle className="h-4 w-4" />;
-      case 'pending': return <Clock className="h-4 w-4" />;
-      case 'overdue': return <AlertCircle className="h-4 w-4" />;
-      default: return <Receipt className="h-4 w-4" />;
+      case 'paid':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'pending':
+        return <Clock className="h-4 w-4" />;
+      case 'overdue':
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <Receipt className="h-4 w-4" />;
     }
   };
-
   const handleInvoiceClick = (invoice: any) => {
     const customer = customers.find(c => c.id === invoice.customer_id);
     const vehicle = vehicles.find(v => v.id === invoice.vehicle_id);
-    
     if (customer && vehicle) {
       setSelectedInvoice(invoice);
       setSelectedCustomer(customer);
@@ -122,33 +103,26 @@ const Dashboard = () => {
       setShowInvoiceModal(true);
     }
   };
-
   const handleCloseInvoiceModal = () => {
     setShowInvoiceModal(false);
     setSelectedInvoice(null);
     setSelectedCustomer(null);
     setSelectedVehicle(null);
   };
-
   const handlePrint = () => {
     window.print();
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       <div className="flex w-full">
         <MobileSidebar />
         
         <div className="flex-1 flex flex-col min-h-screen">
-          <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
+          <header className="bg-white shadow-sm border-b px-4 md:px-6 pt-16 md:pt-4 my-0 py-[31px]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -261,18 +235,10 @@ const Dashboard = () => {
                 <CardDescription>Latest invoices and transactions</CardDescription>
               </CardHeader>
               <CardContent>
-                {recentInvoices.length === 0 ? (
-                  <div className="text-center py-4">
+                {recentInvoices.length === 0 ? <div className="text-center py-4">
                     <p className="text-gray-500">No recent activity</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentInvoices.map((invoice) => (
-                      <div 
-                        key={invoice.id} 
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => handleInvoiceClick(invoice)}
-                      >
+                  </div> : <div className="space-y-4">
+                    {recentInvoices.map(invoice => <div key={invoice.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleInvoiceClick(invoice)}>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             {getStatusIcon(invoice.status)}
@@ -293,10 +259,8 @@ const Dashboard = () => {
                             {invoice.status}
                           </Badge>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </CardContent>
             </Card>
           </div>
@@ -306,18 +270,7 @@ const Dashboard = () => {
       <BottomNavigation />
 
       {/* Invoice View Modal */}
-      {selectedInvoice && selectedCustomer && selectedVehicle && (
-        <InvoiceViewModal
-          isOpen={showInvoiceModal}
-          onClose={handleCloseInvoiceModal}
-          invoice={selectedInvoice}
-          customer={selectedCustomer}
-          vehicle={selectedVehicle}
-          onPrint={handlePrint}
-        />
-      )}
-    </div>
-  );
+      {selectedInvoice && selectedCustomer && selectedVehicle && <InvoiceViewModal isOpen={showInvoiceModal} onClose={handleCloseInvoiceModal} invoice={selectedInvoice} customer={selectedCustomer} vehicle={selectedVehicle} onPrint={handlePrint} />}
+    </div>;
 };
-
 export default Dashboard;

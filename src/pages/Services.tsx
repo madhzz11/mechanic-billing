@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,8 @@ import {
   Wrench,
   Package
 } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import MobileSidebar from "@/components/MobileSidebar";
+import BottomNavigation from "@/components/BottomNavigation";
 import LogoutButton from "@/components/LogoutButton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -155,18 +155,18 @@ const Services = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <MobileSidebar />
       
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
+      <div className="flex-1 md:ml-64">
+        <header className="bg-white shadow-sm border-b px-6 py-4 pt-6 md:pt-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Services & Parts</h1>
             <LogoutButton />
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-6 pb-20 md:pb-6">
           {/* Search */}
           <Card className="mb-6">
             <CardContent className="pt-6">
@@ -499,6 +499,8 @@ const Services = () => {
           </Tabs>
         </div>
       </div>
+      
+      <BottomNavigation />
     </div>
   );
 };

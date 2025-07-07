@@ -14,7 +14,8 @@ import {
   Calendar,
   BarChart3
 } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import MobileSidebar from "@/components/MobileSidebar";
+import BottomNavigation from "@/components/BottomNavigation";
 import LogoutButton from "@/components/LogoutButton";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
@@ -74,11 +75,11 @@ const Reports = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <MobileSidebar />
       
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
+      <div className="flex-1 md:ml-64">
+        <header className="bg-white shadow-sm border-b px-6 py-4 pt-6 md:pt-4">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
@@ -106,7 +107,7 @@ const Reports = () => {
           </div>
         </header>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 pb-20 md:pb-6 space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {keyMetrics.map((metric, index) => (
@@ -276,6 +277,8 @@ const Reports = () => {
           </Tabs>
         </div>
       </div>
+      
+      <BottomNavigation />
     </div>
   );
 };

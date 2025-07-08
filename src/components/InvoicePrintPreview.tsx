@@ -102,6 +102,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-black p-2 text-left">Description</th>
+              <th className="border border-black p-2 text-center">HSN/SAC Code</th>
               <th className="border border-black p-2 text-center">Qty</th>
               <th className="border border-black p-2 text-right">Rate</th>
               <th className="border border-black p-2 text-right">Discount</th>
@@ -115,6 +116,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                   {item.name}
                   <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                 </td>
+                <td className="border border-black p-2 text-center">{item.hsn || item.sac || '-'}</td>
                 <td className="border border-black p-2 text-center">{item.quantity}</td>
                 <td className="border border-black p-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹{item.discount.toFixed(2)}</td>
@@ -124,6 +126,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             {invoice.laborCharges > 0 && (
               <tr>
                 <td className="border border-black p-2">Labor Charges</td>
+                <td className="border border-black p-2 text-center">-</td>
                 <td className="border border-black p-2 text-center">1</td>
                 <td className="border border-black p-2 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹0.00</td>
@@ -133,6 +136,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             {invoice.extraCharges?.map((charge, index) => (
               <tr key={`extra-${index}`}>
                 <td className="border border-black p-2">{charge.name}</td>
+                <td className="border border-black p-2 text-center">-</td>
                 <td className="border border-black p-2 text-center">1</td>
                 <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹0.00</td>
@@ -222,6 +226,11 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           @page {
             margin: 0.5in;
             size: A4;
+          }
+          
+          /* Hide other modals and dialogs during print */
+          .fixed:not(.print-content):not(.print-content *) {
+            display: none !important;
           }
         }
       `}</style>

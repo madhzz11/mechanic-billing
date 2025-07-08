@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       devOptions: {
-        enabled: false
+        enabled: true // Enable in development for testing
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
@@ -74,6 +74,11 @@ export default defineConfig(({ mode }) => ({
           {
             src: '/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png',
             sizes: '64x64',
+            type: 'image/png'
+          },
+          {
+            src: '/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png',
+            sizes: '144x144',
             type: 'image/png'
           },
           {

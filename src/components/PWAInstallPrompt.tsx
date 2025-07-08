@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
+import { Download, X, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -18,23 +18,42 @@ const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Detect iOS
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    setIsIOS(iOS);
+
     // Check if app is already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isInWebApp = (window.navigator as any).standalone === true;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const webApp = (window.navigator as any).standalone === true;
     
-    if (isStandalone || isInWebApp) {
+    setIsStandalone(standalone || webApp);
+    
+    if (standalone || webApp) {
       setIsInstalled(true);
       return;
     }
 
-    // Listen for the beforeinstallprompt event
+    // For iOS, show install prompt after a short delay
+    if (iOS && !standalone && !webApp) {
+      const hasSeenPrompt = localStorage.getItem('ios-install-prompt-dismissed');
+      if (!hasSeenPrompt) {
+        setTimeout(() => setShowPrompt(true), 2000);
+      }
+    }
+
+    // Listen for the beforeinstallprompt event (Android/Desktop)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-dismissed');
+      if (!hasSeenPrompt) {
+        setShowPrompt(true);
+      }
     };
 
     // Listen for app installed event
@@ -42,6 +61,8 @@ const PWAInstallPrompt = () => {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
+      localStorage.removeItem('pwa-install-prompt-dismissed');
+      localStorage.removeItem('ios-install-prompt-dismissed');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -54,6 +75,11 @@ const PWAInstallPrompt = () => {
   }, []);
 
   const handleInstallClick = async () => {
+    if (isIOS) {
+      // iOS install instructions are handled in the render
+      return;
+    }
+
     if (!deferredPrompt) return;
 
     try {
@@ -75,9 +101,14 @@ const PWAInstallPrompt = () => {
 
   const handleDismiss = () => {
     setShowPrompt(false);
+    if (isIOS) {
+      localStorage.setItem('ios-install-prompt-dismissed', 'true');
+    } else {
+      localStorage.setItem('pwa-install-prompt-dismissed', 'true');
+    }
   };
 
-  if (isInstalled || !showPrompt || !deferredPrompt) {
+  if (isInstalled || !showPrompt) {
     return null;
   }
 
@@ -86,7 +117,7 @@ const PWAInstallPrompt = () => {
       fixed z-50 
       ${isMobile 
         ? 'bottom-4 left-4 right-4' 
-        : 'top-4 right-4 w-80'
+        : 'top-4 right-4 w-96'
       }
     `}>
       <Card className="bg-white shadow-lg border-2 border-blue-200">
@@ -105,9 +136,11 @@ const PWAInstallPrompt = () => {
                   Install Auto Bill Guru
                 </h3>
                 <p className="text-xs text-gray-600 mt-1">
-                  {isMobile 
-                    ? 'Add to your home screen for quick access' 
-                    : 'Install the app for a better experience'
+                  {isIOS 
+                    ? 'Add to your home screen for the best experience' 
+                    : isMobile 
+                      ? 'Install the app for quick access' 
+                      : 'Install the app for a better experience'
                   }
                 </p>
               </div>
@@ -122,24 +155,59 @@ const PWAInstallPrompt = () => {
             </Button>
           </div>
           
-          <div className="flex gap-2 mt-3">
-            <Button
-              onClick={handleInstallClick}
-              size="sm"
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Install
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDismiss}
-              className="flex-1"
-            >
-              Not Now
-            </Button>
-          </div>
+          {isIOS ? (
+            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-800 mb-2 font-medium">To install on iOS:</p>
+              <ol className="text-xs text-blue-700 space-y-1">
+                <li className="flex items-center gap-2">
+                  <span>1.</span>
+                  <span>Tap the Share button</span>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
+                  </svg>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>2.</span>
+                  <span>Select "Add to Home Screen"</span>
+                  <Plus className="w-3 h-3" />
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>3.</span>
+                  <span>Tap "Add"</span>
+                </li>
+              </ol>
+              <div className="flex gap-2 mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDismiss}
+                  className="flex-1 text-xs"
+                >
+                  Got it
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2 mt-3">
+              <Button
+                onClick={handleInstallClick}
+                size="sm"
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={!deferredPrompt}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Install
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDismiss}
+                className="flex-1"
+              >
+                Not Now
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import PWAStatusBar from "./components/PWAStatusBar";
 
 const queryClient = new QueryClient();
 
@@ -126,7 +127,7 @@ const AnimatedRoutes = () => {
             <AuthGuard>
               <motion.div
                 initial="initial"
-                animate="in"
+                animate="in" 
                 exit="out"
                 variants={pageVariants}
                 transition={pageTransition}
@@ -159,6 +160,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PWAStatusBar />
           <AnimatedRoutes />
           <PWAInstallPrompt />
         </BrowserRouter>

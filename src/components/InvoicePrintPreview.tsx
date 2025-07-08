@@ -116,7 +116,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                   {item.name}
                   <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                 </td>
-                <td className="border border-black p-2 text-center">{item.sacHsnCode || '-'}</td>
+                <td className="border border-black p-2 text-center">{(item as any).sac_hsn_code || '-'}</td>
                 <td className="border border-black p-2 text-center">{item.quantity}</td>
                 <td className="border border-black p-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹{item.discount.toFixed(2)}</td>
@@ -228,8 +228,13 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             size: A4;
           }
           
-          /* Hide other modals and dialogs during print */
-          .fixed:not(.print-content):not(.print-content *) {
+          /* Ensure only this print content is visible */
+          .fixed:not(.print-content) {
+            display: none !important;
+          }
+          
+          /* Hide any other modals or overlays */
+          [role="dialog"], .modal {
             display: none !important;
           }
         }

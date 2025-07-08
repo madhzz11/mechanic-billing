@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -129,8 +130,8 @@ const InvoiceViewModal = ({
           <table className="w-full border-collapse border border-black mb-4 text-sm">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-black p-2 text-left">HSN/SAC Code</th>
                 <th className="border border-black p-2 text-left">Description</th>
+                <th className="border border-black p-2 text-left">HSN/SAC Code</th>
                 <th className="border border-black p-2 text-center">Qty</th>
                 <th className="border border-black p-2 text-right">Rate</th>
                 <th className="border border-black p-2 text-right">Discount</th>
@@ -140,11 +141,11 @@ const InvoiceViewModal = ({
             <tbody>
               {/* Display invoice items */}
               {invoiceItems.map((item: any, index: number) => <tr key={index}>
-                  <td className="border border-black p-2">{item.sac_hsn_code || '-'}</td>
                   <td className="border border-black p-2">
                     {item.name}
                     <div className="text-xs text-gray-600 capitalize">({item.item_type})</div>
                   </td>
+                  <td className="border border-black p-2">{item.sac_hsn_code || '-'}</td>
                   <td className="border border-black p-2 text-center">{item.quantity}</td>
                   <td className="border border-black p-2 text-right">₹{item.unit_price.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹{(item.discount_amount || 0).toFixed(2)}</td>
@@ -153,11 +154,11 @@ const InvoiceViewModal = ({
               
               {/* Labor charges if present */}
               {invoice.labor_charges > 0 && <tr>
-                  <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2">
                     Labor Charges
                     <div className="text-xs text-gray-600">(Service)</div>
                   </td>
+                  <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2 text-center">1</td>
                   <td className="border border-black p-2 text-right">₹{invoice.labor_charges.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹0.00</td>
@@ -166,11 +167,11 @@ const InvoiceViewModal = ({
               
               {/* Extra charges if present */}
               {invoice.extra_charges?.map((charge: any, index: number) => <tr key={`extra-${index}`}>
-                  <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2">
                     {charge.name}
                     <div className="text-xs text-gray-600">(Extra Charge)</div>
                   </td>
+                  <td className="border border-black p-2">-</td>
                   <td className="border border-black p-2 text-center">1</td>
                   <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
                   <td className="border border-black p-2 text-right">₹0.00</td>

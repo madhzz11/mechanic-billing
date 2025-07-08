@@ -116,7 +116,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                   {item.name}
                   <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                 </td>
-                <td className="border border-black p-2 text-center">{item.hsn || item.sac || '-'}</td>
+                <td className="border border-black p-2 text-center">{item.sacHsnCode || '-'}</td>
                 <td className="border border-black p-2 text-center">{item.quantity}</td>
                 <td className="border border-black p-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹{item.discount.toFixed(2)}</td>

@@ -207,20 +207,18 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             color-adjust: exact !important;
           }
           
-          body * {
-            visibility: hidden;
+          /* Hide the wrapper */
+          .fixed {
+            display: none !important;
           }
           
-          .print-content, .print-content * {
-            visibility: visible;
-          }
-          
+          /* Show only the print content */
           .print-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 20px;
+            display: block !important;
+            position: static !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 20px !important;
           }
           
           @page {

@@ -205,20 +205,34 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           
-          /* Hide the wrapper */
-          .fixed {
-            display: none !important;
+          /* Reset everything and show only print content */
+          body * {
+            visibility: hidden !important;
           }
           
-          /* Show only the print content */
+          .print-content, .print-content * {
+            visibility: visible !important;
+          }
+          
           .print-content {
-            display: block !important;
-            position: static !important;
-            max-width: none !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 20px !important;
+            background: white !important;
+            font-size: 12px !important;
+            line-height: 1.4 !important;
+          }
+          
+          /* Hide screen-only elements */
+          .print\\:hidden {
+            display: none !important;
           }
           
           @page {
@@ -226,14 +240,10 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             size: A4;
           }
           
-          /* Ensure only this print content is visible */
-          .fixed:not(.print-content) {
-            display: none !important;
-          }
-          
-          /* Hide any other modals or overlays */
-          [role="dialog"], .modal {
-            display: none !important;
+          /* Ensure proper page breaks */
+          .print-content {
+            page-break-inside: avoid;
+            page-break-after: auto;
           }
         }
       `}</style>

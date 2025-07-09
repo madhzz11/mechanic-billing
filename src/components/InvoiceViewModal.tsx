@@ -64,7 +64,7 @@ const InvoiceViewModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-        <DialogHeader className="print:hidden">
+        <DialogHeader>
           <div className="flex justify-between items-center">
             <DialogTitle>Invoice Preview</DialogTitle>
             <div className="flex gap-2">
@@ -89,42 +89,6 @@ const InvoiceViewModal = ({
           <InvoiceTotalsSection invoice={invoice} />
           <InvoiceFooter invoice={invoice} />
         </div>
-
-        <style>{`
-          @media print {
-            /* Hide the dialog wrapper */
-            [role="dialog"] {
-              position: static !important;
-              width: 100% !important;
-              height: 100% !important;
-              max-width: none !important;
-              max-height: none !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border: none !important;
-              box-shadow: none !important;
-              background: white !important;
-            }
-            
-            /* Hide dialog header and other elements */
-            [data-radix-dialog-overlay],
-            .print\\:hidden {
-              display: none !important;
-            }
-            
-            /* Show only the print content */
-            .print-content {
-              padding: 20px !important;
-              margin: 0 !important;
-              background: white !important;
-            }
-            
-            @page {
-              margin: 0.5in;
-              size: A4;
-            }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );

@@ -77,7 +77,7 @@ const InvoiceViewModal = ({
         </DialogHeader>
 
         {/* Invoice Content - Styled to match the second image */}
-        <div className="print-content bg-white p-6 print:hidden">
+        <div className="print-content bg-white p-6">
           <InvoiceHeader onPrint={onPrint} />
           <InvoiceBillToSection customer={customer} invoice={invoice} />
           <InvoiceVehicleDetails vehicle={vehicle} invoice={invoice} />
@@ -90,26 +90,6 @@ const InvoiceViewModal = ({
           <InvoiceFooter invoice={invoice} />
         </div>
       </DialogContent>
-
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          /* Hide the entire dialog when printing */
-          [role="dialog"] {
-            display: none !important;
-          }
-          
-          /* Hide all modal overlays */
-          .fixed {
-            display: none !important;
-          }
-          
-          /* Hide dialog content */
-          .print-content {
-            display: none !important;
-          }
-        }
-      `}</style>
     </Dialog>
   );
 };

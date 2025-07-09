@@ -207,33 +207,59 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             color-adjust: exact !important;
           }
           
-          /* Hide the wrapper */
-          .fixed {
-            display: none !important;
+          /* Hide everything on the page */
+          body * {
+            visibility: hidden !important;
           }
           
-          /* Show only the print content */
+          /* Show only the print content and its children */
+          .print-content, .print-content * {
+            visibility: visible !important;
+          }
+          
+          /* Position the print content properly */
           .print-content {
-            display: block !important;
-            position: static !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
             max-width: none !important;
             margin: 0 !important;
             padding: 20px !important;
+            background: white !important;
           }
           
+          /* Hide all other elements completely */
+          .fixed:not(.print-content),
+          [role="dialog"],
+          .modal,
+          header,
+          nav,
+          .sidebar,
+          .print\\:hidden {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          
+          /* Page settings */
           @page {
             margin: 0.5in;
             size: A4;
           }
           
-          /* Ensure only this print content is visible */
-          .fixed:not(.print-content) {
-            display: none !important;
+          /* Ensure proper page breaks */
+          .print-content {
+            page-break-inside: avoid;
           }
           
-          /* Hide any other modals or overlays */
-          [role="dialog"], .modal {
-            display: none !important;
+          /* Allow natural page breaks for long content */
+          table {
+            page-break-inside: auto;
+          }
+          
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
           }
         }
       `}</style>

@@ -14,9 +14,15 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
     window.print();
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-IN');
   };
+
+  // Handle database field names (snake_case) vs TypeScript types (camelCase)
+  const invoiceData = invoice as any;
+  const customerData = customer as any;
+  const vehicleData = vehicle as any;
 
   return (
     <div className="fixed inset-0 bg-white z-50 overflow-auto">
@@ -62,20 +68,20 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           <div>
             <h2 className="text-xl font-bold mb-3">BILL TO:</h2>
             <div className="space-y-1">
-              <p className="font-semibold">{customer.name}</p>
-              <p>{customer.phone}</p>
-              <p>{customer.email}</p>
-              {customer.gstNumber && (
-                <p><strong>GST No:</strong> {customer.gstNumber}</p>
+              <p className="font-semibold">{customerData.name || 'N/A'}</p>
+              <p>{customerData.phone || 'N/A'}</p>
+              <p>{customerData.email || 'N/A'}</p>
+              {(customerData.gst_number || customerData.gstNumber) && (
+                <p><strong>GST No:</strong> {customerData.gst_number || customerData.gstNumber}</p>
               )}
             </div>
           </div>
           <div className="text-right">
             <div className="space-y-2">
-              <p><strong>Invoice No:</strong> {invoice.invoiceNumber}</p>
-              <p><strong>Date:</strong> {formatDate(invoice.createdAt)}</p>
-              <p><strong>Due Date:</strong> {formatDate(invoice.dueDate)}</p>
-              <p><strong>Invoice Type:</strong> {invoice.invoiceType === 'gst' ? 'GST Invoice' : 'Non-GST Invoice'}</p>
+              <p><strong>Invoice No:</strong> {invoiceData.invoice_number || invoiceData.invoiceNumber || 'N/A'}</p>
+              <p><strong>Date:</strong> {formatDate(invoiceData.created_at || invoiceData.createdAt)}</p>
+              <p><strong>Due Date:</strong> {formatDate(invoiceData.due_date || invoiceData.dueDate)}</p>
+              <p><strong>Invoice Type:</strong> {(invoiceData.invoice_type || invoiceData.invoiceType) === 'gst' ? 'GST Invoice' : 'Non-GST Invoice'}</p>
             </div>
           </div>
         </div>
@@ -85,13 +91,13 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           <h3 className="font-bold mb-2">VEHICLE DETAILS:</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p><strong>Vehicle:</strong> {vehicle.make} {vehicle.model}</p>
-              <p><strong>Registration:</strong> {vehicle.vehicleNumber}</p>
+              <p><strong>Vehicle:</strong> {vehicleData.make || 'N/A'} {vehicleData.model || ''}</p>
+              <p><strong>Registration:</strong> {vehicleData.vehicle_number || vehicleData.vehicleNumber || 'N/A'}</p>
             </div>
             <div>
-              <p><strong>Type:</strong> {vehicle.vehicleType}</p>
-              {invoice.kilometers && (
-                <p><strong>Kilometers:</strong> {invoice.kilometers.toLocaleString()} km</p>
+              <p><strong>Type:</strong> {vehicleData.vehicle_type || vehicleData.vehicleType || 'N/A'}</p>
+              {invoiceData.kilometers && (
+                <p><strong>Kilometers:</strong> {invoiceData.kilometers.toLocaleString()} km</p>
               )}
             </div>
           </div>
@@ -110,37 +116,37 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             </tr>
           </thead>
           <tbody>
-            {invoice.items.map((item, index) => (
+            {(invoiceData.items || []).map((item: any, index: number) => (
               <tr key={index}>
                 <td className="border border-black p-2">
-                  {item.name}
-                  <div className="text-sm text-gray-600 capitalize">({item.type})</div>
+                  {item.name || 'N/A'}
+                  <div className="text-sm text-gray-600 capitalize">({item.item_type || item.type || 'item'})</div>
                 </td>
-                <td className="border border-black p-2 text-center">{(item as any).sac_hsn_code || '-'}</td>
-                <td className="border border-black p-2 text-center">{item.quantity}</td>
-                <td className="border border-black p-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹{item.discount.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹{item.total.toFixed(2)}</td>
+                <td className="border border-black p-2 text-center">{item.sac_hsn_code || '-'}</td>
+                <td className="border border-black p-2 text-center">{item.quantity || 0}</td>
+                <td className="border border-black p-2 text-right">₹{(item.unit_price || item.unitPrice || 0).toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(item.discount_amount || item.discount || 0).toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(item.total_amount || item.total || 0).toFixed(2)}</td>
               </tr>
             ))}
-            {invoice.laborCharges > 0 && (
+            {(invoiceData.labor_charges || invoiceData.laborCharges || 0) > 0 && (
               <tr>
                 <td className="border border-black p-2">Labor Charges</td>
                 <td className="border border-black p-2 text-center">-</td>
                 <td className="border border-black p-2 text-center">1</td>
-                <td className="border border-black p-2 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(invoiceData.labor_charges || invoiceData.laborCharges || 0).toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹0.00</td>
-                <td className="border border-black p-2 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(invoiceData.labor_charges || invoiceData.laborCharges || 0).toFixed(2)}</td>
               </tr>
             )}
-            {invoice.extraCharges?.map((charge, index) => (
+            {(invoiceData.extra_charges || invoiceData.extraCharges || []).map((charge: any, index: number) => (
               <tr key={`extra-${index}`}>
-                <td className="border border-black p-2">{charge.name}</td>
+                <td className="border border-black p-2">{charge.name || 'Extra Charge'}</td>
                 <td className="border border-black p-2 text-center">-</td>
                 <td className="border border-black p-2 text-center">1</td>
-                <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(charge.amount || 0).toFixed(2)}</td>
                 <td className="border border-black p-2 text-right">₹0.00</td>
-                <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
+                <td className="border border-black p-2 text-right">₹{(charge.amount || 0).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -152,32 +158,32 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>₹{invoice.subtotal.toFixed(2)}</span>
+              <span>₹{(invoiceData.subtotal || 0).toFixed(2)}</span>
             </div>
-            {invoice.discount > 0 && (
+            {(invoiceData.discount_percentage || invoiceData.discount || 0) > 0 && (
               <div className="flex justify-between text-green-600">
-                <span>Discount ({invoice.discount}%):</span>
-                <span>-₹{((invoice.subtotal * invoice.discount) / 100).toFixed(2)}</span>
+                <span>Discount ({invoiceData.discount_percentage || invoiceData.discount || 0}%):</span>
+                <span>-₹{(invoiceData.discount_amount || ((invoiceData.subtotal || 0) * (invoiceData.discount_percentage || invoiceData.discount || 0)) / 100).toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span>{invoice.invoiceType === 'gst' ? `GST (${invoice.taxRate}%):` : 'Tax:'}</span>
-              <span>₹{invoice.taxAmount.toFixed(2)}</span>
+              <span>{(invoiceData.invoice_type || invoiceData.invoiceType) === 'gst' ? 'GST:' : 'Tax:'}</span>
+              <span>₹{(invoiceData.total_gst_amount || invoiceData.taxAmount || 0).toFixed(2)}</span>
             </div>
             <div className="border-t-2 border-black pt-2">
               <div className="flex justify-between font-bold text-lg">
                 <span>Total Amount:</span>
-                <span>₹{invoice.total.toFixed(2)}</span>
+                <span>₹{(invoiceData.total || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Notes */}
-        {invoice.notes && (
+        {(invoiceData.notes) && (
           <div className="mb-6">
             <h3 className="font-bold mb-2">NOTES:</h3>
-            <p className="text-sm border p-3 rounded">{invoice.notes}</p>
+            <p className="text-sm border p-3 rounded">{invoiceData.notes}</p>
           </div>
         )}
 

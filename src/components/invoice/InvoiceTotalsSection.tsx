@@ -11,7 +11,7 @@ const InvoiceTotalsSection = ({ invoice }: InvoiceTotalsSectionProps) => {
       <div className="w-64 space-y-1 text-sm">
         <div className="flex justify-between">
           <span>Subtotal:</span>
-          <span>₹{(invoice.subtotal || 0).toFixed(2)}</span>
+          <span>₹{invoice.subtotal.toFixed(2)}</span>
         </div>
         {invoice.invoice_type === 'gst' && (
           <>
@@ -28,7 +28,7 @@ const InvoiceTotalsSection = ({ invoice }: InvoiceTotalsSectionProps) => {
         <div className="border-t border-black pt-1">
           <div className="flex justify-between font-bold">
             <span>Total Amount:</span>
-            <span>₹{(invoice.total || 0).toFixed(2)}</span>
+            <span>₹{invoice.total.toFixed(2)}</span>
           </div>
         </div>
       </div>

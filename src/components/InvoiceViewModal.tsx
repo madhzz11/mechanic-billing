@@ -10,7 +10,6 @@ import InvoiceVehicleDetails from "./invoice/InvoiceVehicleDetails";
 import InvoiceItemsTable from "./invoice/InvoiceItemsTable";
 import InvoiceTotalsSection from "./invoice/InvoiceTotalsSection";
 import InvoiceFooter from "./invoice/InvoiceFooter";
-import InvoicePrintPreview from "./InvoicePrintPreview";
 
 interface InvoiceViewModalProps {
   isOpen: boolean;
@@ -31,7 +30,6 @@ const InvoiceViewModal = ({
 }: InvoiceViewModalProps) => {
   const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   useEffect(() => {
     if (invoice?.id && isOpen) {
@@ -61,72 +59,38 @@ const InvoiceViewModal = ({
     }
   };
 
-  const handlePrint = () => {
-    setShowPrintPreview(true);
-  };
-
-  const closePrintPreview = () => {
-    setShowPrintPreview(false);
-  };
-
   if (!invoice || !customer || !vehicle) return null;
 
-  // Create invoice object with items for print preview
-  const invoiceWithItems = {
-    ...invoice,
-    items: invoiceItems.map(item => ({
-      name: item.name,
-      type: item.item_type,
-      quantity: item.quantity,
-      unitPrice: item.unit_price,
-      discount: item.discount_amount || 0,
-      total: item.total_amount,
-      sac_hsn_code: item.sac_hsn_code
-    }))
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto print:hidden">
-          <DialogHeader>
-            <div className="flex justify-between items-center">
-              <DialogTitle>Invoice Preview</DialogTitle>
-              <div className="flex gap-2">
-                <Button onClick={handlePrint} size="sm" className="mx-[30px]">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-              </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogHeader>
+          <div className="flex justify-between items-center">
+            <DialogTitle>Invoice Preview</DialogTitle>
+            <div className="flex gap-2">
+              <Button onClick={onPrint} size="sm" className="mx-[30px]">
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
             </div>
-          </DialogHeader>
-
-          {/* Invoice Content - Styled to match the second image */}
-          <div className="print-content bg-white p-6">
-            <InvoiceHeader onPrint={handlePrint} />
-            <InvoiceBillToSection customer={customer} invoice={invoice} />
-            <InvoiceVehicleDetails vehicle={vehicle} invoice={invoice} />
-            <InvoiceItemsTable 
-              invoiceItems={invoiceItems} 
-              invoice={invoice} 
-              loading={loading} 
-            />
-            <InvoiceTotalsSection invoice={invoice} />
-            <InvoiceFooter invoice={invoice} />
           </div>
-        </DialogContent>
-      </Dialog>
+        </DialogHeader>
 
-      {/* Print Preview Component */}
-      {showPrintPreview && (
-        <InvoicePrintPreview
-          invoice={invoiceWithItems}
-          customer={customer}
-          vehicle={vehicle}
-          onClose={closePrintPreview}
-        />
-      )}
-    </>
+        {/* Invoice Content - Styled to match the second image */}
+        <div className="print-content bg-white p-6">
+          <InvoiceHeader onPrint={onPrint} />
+          <InvoiceBillToSection customer={customer} invoice={invoice} />
+          <InvoiceVehicleDetails vehicle={vehicle} invoice={invoice} />
+          <InvoiceItemsTable 
+            invoiceItems={invoiceItems} 
+            invoice={invoice} 
+            loading={loading} 
+          />
+          <InvoiceTotalsSection invoice={invoice} />
+          <InvoiceFooter invoice={invoice} />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
